@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @layer base {
   body {
@@ -23,5 +23,7 @@
 }
 
 .text-shadow-glow {
-  text-shadow: 0 0 5px rgba(74, 222, 128, 0.8), 0 0 10px rgba(74, 222, 128, 0.5);
+  text-shadow:
+    0 0 5px rgba(74, 222, 128, 0.8),
+    0 0 10px rgba(74, 222, 128, 0.5);
 }
