@@ -1,23 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const generateMatrixRainDrops = () => {
-  return Array.from({ length: 100 }).map((_, i) => ({
-    id: i,
-    left: `${Math.random() * 100}vw`,
-    top: `${Math.random() * 100}vh`,
-    animationDuration: `${Math.random() * 2 + 3}s`,
-    animationDelay: `-${Math.random() * 5}s`,
-    character: String.fromCharCode(0x30a0 + Math.random() * 96),
-  }));
-};
-
-const matrixRainDrops = generateMatrixRainDrops();
+import { useNotification } from '../context/NotificationContext';
+import MatrixRain from '../components/MatrixRain';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('admin@admin.com');
   const [password, setPassword] = useState('password123');
   const navigate = useNavigate();
+  const { showNotification } = useNotification();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -37,44 +27,26 @@ const LoginPage = () => {
         if (data && data.data) {
           localStorage.setItem('token', data.data.token);
           localStorage.setItem('user', JSON.stringify(data.data.user));
+          showNotification('Login successful!', 'success');
           navigate('/dashboard');
         } else {
-          alert('Login failed: Invalid response structure');
+          showNotification('Login failed: Invalid response structure', 'error');
         }
       } else {
-        alert('Login failed');
+        showNotification('Login failed. Please check your credentials.', 'error');
       }
     } catch (error) {
       console.error('Login error:', error);
-      alert('An error occurred during login');
+      showNotification('An error occurred during login.', 'error');
     }
   };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-black p-4 font-mono text-green-400">
-      <div className="absolute top-0 left-0 -z-10 h-full w-full overflow-hidden">
-        {/* Matrix Rain Effect - Simplified for illustration */}
-        <div className="matrix-rain pointer-events-none absolute inset-0 opacity-20">
-          {matrixRainDrops.map((drop) => (
-            <span
-              key={drop.id}
-              className="text-shadow-glow absolute text-xs"
-              style={{
-                left: drop.left,
-                top: drop.top,
-                animation: `matrix-fall ${drop.animationDuration} linear infinite`,
-                animationDelay: drop.animationDelay,
-              }}
-            >
-              {drop.character}
-            </span>
-          ))}
-        </div>
-      </div>
-
+      <MatrixRain />
       <header className="relative z-10 mb-8 text-center">
         <h1 className="text-shadow-glow animate-pulse text-5xl font-bold tracking-widest uppercase">
-          Vyaya-UI
+          Vyaya
         </h1>
         <p className="mt-2 text-sm font-bold text-green-500">Unlocking the digital realm.</p>
       </header>
@@ -110,19 +82,13 @@ const LoginPage = () => {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-center">
             <button
               type="submit"
               className="transform rounded bg-green-700 px-6 py-3 font-bold tracking-wider text-black uppercase transition duration-300 ease-in-out hover:scale-105 hover:bg-green-600 focus:shadow-[0_0_15px_rgba(34,197,94,0.6)] focus:outline-none"
             >
               Enter the Matrix
             </button>
-            <a
-              href="#"
-              className="inline-block align-baseline text-sm font-bold text-green-400 transition-colors hover:text-green-200"
-            >
-              Forgot Password?
-            </a>
           </div>
         </form>
       </main>
