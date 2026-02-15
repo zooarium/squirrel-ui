@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../context/NotificationContext';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -19,14 +19,35 @@ const CategoriesPage = () => {
     onConfirm: () => {},
   });
   const [formErrors, setFormErrors] = useState({});
+  const [filters, setFilters] = useState({
+    name: '',
+  });
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
   const { showNotification } = useNotification();
+  const addInputRef = useRef(null);
+  const editInputRef = useRef(null);
+
+  useEffect(() => {
+    if (isAddModalOpen && addInputRef.current) {
+      addInputRef.current.focus();
+    }
+  }, [isAddModalOpen]);
+
+  useEffect(() => {
+    if (isEditModalOpen && editInputRef.current) {
+      editInputRef.current.focus();
+    }
+  }, [isEditModalOpen]);
 
   const fetchCategories = async () => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem('token');
-      const apiUrl = `${import.meta.env.VITE_API_BE_URL}/categories`;
+      const queryParams = new URLSearchParams();
+      if (filters.name) queryParams.append('name', filters.name);
+
+      const apiUrl = `${import.meta.env.VITE_API_BE_URL}/categories${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await fetch(apiUrl, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -35,7 +56,9 @@ const CategoriesPage = () => {
       });
       if (!response.ok) throw new Error('Failed to fetch categories');
       const data = await response.json();
-      setCategories(data.data || []);
+      // Handle both { data: [...] } and { data: { categories: [...] } }
+      const categoriesData = data.data?.categories || (Array.isArray(data.data) ? data.data : []);
+      setCategories(categoriesData);
     } catch (err) {
       setError(err.message);
       showNotification(err.message, 'error');
@@ -46,7 +69,19 @@ const CategoriesPage = () => {
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [filters]);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, name: searchTerm }));
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
+
+  const handleFilterChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
 
   const handleAddNewCategory = async (e) => {
     e.preventDefault();
@@ -151,19 +186,6 @@ const CategoriesPage = () => {
     }
   };
 
-  if (isLoading)
-    return (
-      <div className="flex h-screen items-center justify-center bg-black font-mono text-green-400">
-        Loading...
-      </div>
-    );
-  if (error)
-    return (
-      <div className="flex h-screen items-center justify-center bg-black font-mono text-red-500">
-        Error: {error}
-      </div>
-    );
-
   return (
     <div className="min-h-screen bg-black p-8 font-mono text-green-400">
       <MatrixRain />
@@ -202,6 +224,126 @@ const CategoriesPage = () => {
           </button>
         </div>
 
+        <div className="mb-6 rounded-lg border border-green-600 bg-black/80 p-4 shadow-[0_0_10px_rgba(34,197,94,0.2)]">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <label htmlFor="filter-name" className="mb-2 block text-xs font-bold uppercase">
+                Search Name
+              </label>
+              <input
+                id="filter-name"
+                name="name"
+                type="text"
+                value={searchTerm}
+                onChange={handleFilterChange}
+                placeholder="Filter by name..."
+                className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 focus:border-green-400 focus:outline-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="flex h-64 items-center justify-center text-lg">Loading...</div>
+        ) : error ? (
+          <div className="flex h-64 flex-col items-center justify-center space-y-4 rounded-lg border border-red-500 bg-red-900/20 p-8 text-red-500">
+            <p className="text-xl font-bold">Error: {error}</p>
+            <button
+              onClick={fetchCategories}
+              className="rounded bg-red-700 px-4 py-2 font-bold text-white hover:bg-red-600"
+            >
+              Retry
+            </button>
+          </div>
+        ) : categories.length === 0 ? (
+          <div className="flex h-64 flex-col items-center justify-center space-y-4 rounded-lg border border-green-600 bg-green-900/10 p-8 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+            <p className="text-xl">No categories found.</p>
+            <button
+              onClick={() => {
+                setAddModalOpen(true);
+                setFormErrors({});
+              }}
+              className="rounded border border-green-600 bg-black px-4 py-2 hover:bg-green-900/20"
+            >
+              Add your first category
+            </button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-green-600 bg-black/80 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+            <table className="min-w-full">
+              <thead className="border-b border-green-600">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                    ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                    Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium tracking-wider uppercase">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+                            <tbody className="divide-y divide-green-800">
+                              {Array.isArray(categories) && categories.map((category) => (
+                                <tr key={category.id} className="hover:bg-green-900/20">                    <td className="px-6 py-4 whitespace-nowrap">{category.id}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{category.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`rounded-full px-2 py-1 text-xs font-semibold ${category.status === 1 ? 'bg-green-700 text-green-100' : 'bg-red-700 text-red-100'}`}
+                      >
+                        {category.status === 1 ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
+                      <button
+                        onClick={() => openEditModal(category)}
+                        className="text-blue-400 hover:text-blue-300"
+                        title="Edit"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                          <path
+                            fillRule="evenodd"
+                            d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteRequest(category)}
+                        className="ml-4 text-red-500 hover:text-red-400"
+                        title="Delete"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
         {isAddModalOpen && (
           <div
             className="bg-opacity-75 fixed inset-0 z-50 flex items-center justify-center bg-black"
@@ -239,6 +381,7 @@ const CategoriesPage = () => {
                   </label>
                   <input
                     id="categoryName"
+                    ref={addInputRef}
                     type="text"
                     value={newCategoryName}
                     onChange={handleNameChange}
@@ -299,6 +442,7 @@ const CategoriesPage = () => {
                   </label>
                   <input
                     id="editCategoryName"
+                    ref={editInputRef}
                     type="text"
                     value={newCategoryName}
                     onChange={handleNameChange}
@@ -320,81 +464,6 @@ const CategoriesPage = () => {
             </div>
           </div>
         )}
-
-        <div className="overflow-x-auto rounded-lg border border-green-600 bg-black/80 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
-          <table className="min-w-full">
-            <thead className="border-b border-green-600">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium tracking-wider uppercase">
-                  ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium tracking-wider uppercase">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium tracking-wider uppercase">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium tracking-wider uppercase">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-green-800">
-              {categories.map((category) => (
-                <tr key={category.id} className="hover:bg-green-900/20">
-                  <td className="px-6 py-4 whitespace-nowrap">{category.id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{category.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`rounded-full px-2 py-1 text-xs font-semibold ${category.status === 1 ? 'bg-green-700 text-green-100' : 'bg-red-700 text-red-100'}`}
-                    >
-                      {category.status === 1 ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
-                    <button
-                      onClick={() => openEditModal(category)}
-                      className="text-blue-400 hover:text-blue-300"
-                      title="Edit"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
-                        <path
-                          fillRule="evenodd"
-                          d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => handleDeleteRequest(category)}
-                      className="ml-4 text-red-500 hover:text-red-400"
-                      title="Delete"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
   );

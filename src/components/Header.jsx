@@ -6,7 +6,15 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showNotification } = useNotification();
-  const user = JSON.parse(localStorage.getItem('user'));
+  const user = (() => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch (e) {
+      console.error('Failed to parse user from localStorage', e);
+      return null;
+    }
+  })();
 
   const handleLogout = () => {
     localStorage.removeItem('token');

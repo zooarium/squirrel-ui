@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNotification } from '../context/NotificationContext';
 import MatrixRain from '../components/MatrixRain';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -15,6 +15,8 @@ const DashboardPage = () => {
     amount: '',
     type: 'expense',
     category_id: '',
+    dated: new Date().toISOString().split('T')[0],
+    recurring: 0,
   });
   const [confirmState, setConfirmState] = useState({
     isOpen: false,
@@ -22,14 +24,35 @@ const DashboardPage = () => {
     onConfirm: () => {},
   });
   const [formErrors, setFormErrors] = useState({});
+  const [filters, setFilters] = useState({
+    category_id: '',
+    recurring: '',
+    dated: '',
+    from: '',
+    to: '',
+  });
 
   const { showNotification } = useNotification();
+  const firstInputRef = useRef(null);
+
+  useEffect(() => {
+    if (isModalOpen && firstInputRef.current) {
+      firstInputRef.current.focus();
+    }
+  }, [isModalOpen]);
 
   const fetchTransactions = async () => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem('token');
-      const apiUrl = `${import.meta.env.VITE_API_BE_URL}/transactions`;
+      const queryParams = new URLSearchParams();
+      if (filters.category_id) queryParams.append('category_id', filters.category_id);
+      if (filters.recurring !== '') queryParams.append('recurring', filters.recurring);
+      if (filters.dated) queryParams.append('dated', filters.dated);
+      if (filters.from) queryParams.append('from', filters.from);
+      if (filters.to) queryParams.append('to', filters.to);
+
+      const apiUrl = `${import.meta.env.VITE_API_BE_URL}/transactions${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await fetch(apiUrl, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -38,7 +61,9 @@ const DashboardPage = () => {
       });
       if (!response.ok) throw new Error('Failed to fetch transactions');
       const data = await response.json();
-      setTransactions(data.data || []);
+      // The API returns { data: { transactions: [], stats: {} } }
+      const transactionsData = data.data?.transactions || (Array.isArray(data.data) ? data.data : []);
+      setTransactions(transactionsData);
     } catch (err) {
       setError(err.message);
       showNotification(err.message, 'error');
@@ -59,7 +84,9 @@ const DashboardPage = () => {
       });
       if (!response.ok) throw new Error('Failed to fetch categories');
       const data = await response.json();
-      setCategories(data.data || []);
+      // Handle both { data: [...] } and { data: { categories: [...] } }
+      const categoriesData = data.data?.categories || (Array.isArray(data.data) ? data.data : []);
+      setCategories(categoriesData);
     } catch (err) {
       showNotification(err.message, 'error');
     }
@@ -68,11 +95,17 @@ const DashboardPage = () => {
   useEffect(() => {
     fetchTransactions();
     fetchCategories();
-  }, []);
+  }, [filters]);
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleInputChange = (e) => {
-    const { id, value } = e.target;
-    setCurrentTransaction({ ...currentTransaction, [id]: value });
+    const { id, value, type, checked } = e.target;
+    const val = type === 'checkbox' ? (checked ? 1 : 0) : value;
+    setCurrentTransaction({ ...currentTransaction, [id]: val });
     if (formErrors[id]) {
       setFormErrors({ ...formErrors, [id]: null });
     }
@@ -84,6 +117,8 @@ const DashboardPage = () => {
       setCurrentTransaction({
         ...transaction,
         category_id: transaction.category_id || '',
+        dated: transaction.dated ? transaction.dated.split('T')[0] : new Date().toISOString().split('T')[0],
+        recurring: transaction.recurring || 0,
       });
     } else {
       setIsEditMode(false);
@@ -91,6 +126,8 @@ const DashboardPage = () => {
         amount: '',
         type: 'expense',
         category_id: '',
+        dated: new Date().toISOString().split('T')[0],
+        recurring: 0,
       });
     }
     setFormErrors({});
@@ -103,6 +140,8 @@ const DashboardPage = () => {
       amount: '',
       type: 'expense',
       category_id: '',
+      dated: new Date().toISOString().split('T')[0],
+      recurring: 0,
     });
     setFormErrors({});
   };
@@ -117,6 +156,9 @@ const DashboardPage = () => {
     if (currentTransaction.type === 'expense' && !currentTransaction.category_id) {
       errors.category_id = 'Category is required for expenses.';
     }
+    if (!currentTransaction.dated) {
+      errors.dated = 'Date is required.';
+    }
     return errors;
   };
 
@@ -128,12 +170,14 @@ const DashboardPage = () => {
       return;
     }
 
-    const { amount, type, category_id } = currentTransaction;
+    const { amount, type, category_id, dated, recurring } = currentTransaction;
 
     const payload = {
       amount: parseFloat(amount),
       type,
       category_id: category_id ? parseInt(category_id, 10) : null,
+      dated,
+      recurring: parseInt(recurring, 10),
     };
 
     const url = isEditMode
@@ -235,73 +279,186 @@ const DashboardPage = () => {
           </button>
         </div>
 
+          <div className="mb-6 flex flex-wrap items-end gap-4">
+            <div className="flex-1 min-w-[150px] max-w-xs">
+              <label htmlFor="filter-category" className="mb-2 block text-xs font-bold uppercase text-green-400">
+                Category
+              </label>
+              <select
+                id="filter-category"
+                name="category_id"
+                value={filters.category_id}
+                onChange={handleFilterChange}
+                className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
+              >
+                <option value="">All Categories</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex-1 min-w-[150px] max-w-xs">
+              <label htmlFor="filter-dated" className="mb-2 block text-xs font-bold uppercase text-green-400">
+                Date Range
+              </label>
+              <select
+                id="filter-dated"
+                name="dated"
+                value={filters.dated}
+                onChange={handleFilterChange}
+                className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
+              >
+                <option value="">All Time</option>
+                <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="this month">This Month</option>
+                <option value="last month">Last Month</option>
+                <option value="this year">This Year</option>
+                <option value="last year">Last Year</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+
+            {filters.dated === 'custom' && (
+              <>
+                <div className="flex-1 min-w-[140px] max-w-xs">
+                  <label htmlFor="filter-from" className="mb-2 block text-xs font-bold uppercase text-green-400">
+                    From Date
+                  </label>
+                  <input
+                    id="filter-from"
+                    name="from"
+                    type="date"
+                    value={filters.from}
+                    onChange={handleFilterChange}
+                    className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 [&::-webkit-calendar-picker-indicator]:invert focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
+                  />
+                </div>
+                <div className="flex-1 min-w-[140px] max-w-xs">
+                  <label htmlFor="filter-to" className="mb-2 block text-xs font-bold uppercase text-green-400">
+                    To Date
+                  </label>
+                  <input
+                    id="filter-to"
+                    name="to"
+                    type="date"
+                    value={filters.to}
+                    onChange={handleFilterChange}
+                    className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 [&::-webkit-calendar-picker-indicator]:invert focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="flex items-center pb-3 pl-2">
+              <label htmlFor="filter-recurring" className="flex cursor-pointer items-center space-x-2 text-sm font-bold text-green-400">
+                <input
+                  id="filter-recurring"
+                  name="recurring"
+                  type="checkbox"
+                  checked={filters.recurring === '1'}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, recurring: e.target.checked ? '1' : '' }))
+                  }
+                  className="matrix-checkbox h-5 w-5"
+                />
+                <span>Recurring Only</span>
+              </label>
+            </div>
+          </div>
+
         {isLoading ? (
           <div className="flex h-64 items-center justify-center text-lg">
             Loading Transactions...
           </div>
         ) : error ? (
-          <div className="flex h-64 items-center justify-center text-red-500">Error: {error}</div>
+          <div className="flex h-64 flex-col items-center justify-center space-y-4 rounded-lg border border-red-500 bg-red-900/20 p-8 text-red-500">
+            <p className="text-xl font-bold">Error: {error}</p>
+            <button
+              onClick={() => {
+                setError(null);
+                fetchTransactions();
+                fetchCategories();
+              }}
+              className="rounded bg-red-700 px-4 py-2 font-bold text-white hover:bg-red-600"
+            >
+              Retry
+            </button>
+          </div>
+        ) : transactions.length === 0 ? (
+          <div className="flex h-64 flex-col items-center justify-center space-y-4 rounded-lg border border-green-600 bg-green-900/10 p-8 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+            <p className="text-xl">No transactions found.</p>
+            <button
+              onClick={() => handleOpenModal()}
+              className="rounded border border-green-600 bg-black px-4 py-2 hover:bg-green-900/20"
+            >
+              Add your first transaction
+            </button>
+          </div>
         ) : (
           <main>
             <div className="overflow-x-auto rounded-lg border border-green-600 bg-black/80 shadow-[0_0_15px_rgba(34,197,94,0.3)] backdrop-blur-sm">
               <table className="min-w-full divide-y divide-green-700">
-                                <thead className="bg-black/50">
-                                  <tr>
-                                    <th
-                                      scope="col"
-                                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-green-300 uppercase"
-                                    >
-                                      Category
-                                    </th>
-                                    <th
-                                      scope="col"
-                                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-green-300 uppercase"
-                                    >
-                                      Amount
-                                    </th>
-                                    <th
-                                      scope="col"
-                                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-green-300 uppercase"
-                                    >
-                                      Type
-                                    </th>
-                                    <th
-                                      scope="col"
-                                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-green-300 uppercase"
-                                    >
-                                      Date
-                                    </th>
-                                    <th scope="col" className="relative px-6 py-3">
-                                      <span className="sr-only">Actions</span>
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody className="divide-y divide-green-800">
-                                  {transactions.map((transaction) => (
-                                    <tr key={transaction.id} className="hover:bg-green-900/20">
-                                      <td className="px-6 py-4 whitespace-nowrap">
-                                        {getCategoryName(transaction.category_id)}
-                                      </td>
-                                      <td className="px-6 py-4 whitespace-nowrap">
-                                        {new Intl.NumberFormat('en-IN', {
-                                          style: 'currency',
-                                          currency: 'INR',
-                                        }).format(transaction.amount)}
-                                      </td>
-                                      <td className="px-6 py-4 whitespace-nowrap">
-                                        <span
-                                          className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                                            transaction.type === 'income'
-                                              ? 'bg-green-700 text-green-100'
-                                              : 'bg-red-700 text-red-100'
-                                          }`}
-                                        >
-                                          {transaction.type}
-                                        </span>
-                                      </td>
-                                      <td className="px-6 py-4 whitespace-nowrap">
-                                        {new Date(transaction.created_at).toLocaleDateString()}
-                                      </td>
+                <thead className="bg-black/50">
+                  <tr>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-green-300 uppercase"
+                    >
+                      Category
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-green-300 uppercase"
+                    >
+                      Amount
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-green-300 uppercase"
+                    >
+                      Type
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-green-300 uppercase"
+                    >
+                      Date
+                    </th>
+                    <th scope="col" className="relative px-6 py-3">
+                      <span className="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-green-800">
+                  {Array.isArray(transactions) && transactions.map((transaction) => (
+                    <tr key={transaction.id} className="hover:bg-green-900/20">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getCategoryName(transaction.category_id)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {new Intl.NumberFormat('en-IN', {
+                          style: 'currency',
+                          currency: 'INR',
+                        }).format(transaction.amount)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                            transaction.type === 'income'
+                              ? 'bg-green-700 text-green-100'
+                              : 'bg-red-700 text-red-100'
+                          }`}
+                        >
+                          {transaction.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {new Date(transaction.created_at).toLocaleDateString()}
+                      </td>
                       <td className="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
                         <button
                           onClick={() => handleOpenModal(transaction)}
@@ -389,12 +546,13 @@ const DashboardPage = () => {
                 </label>
                 <select
                   id="category_id"
+                  ref={firstInputRef}
                   value={currentTransaction.category_id}
                   onChange={handleInputChange}
                   className={`w-full appearance-none rounded border bg-black px-4 py-3 leading-tight text-green-300 shadow focus:shadow-[0_0_10px_rgba(34,197,94,0.5)] focus:outline-none ${formErrors.category_id ? 'border-red-500 focus:border-red-500' : 'border-green-600 focus:border-green-400'}`}
                 >
                   <option value="">Select a category</option>
-                  {categories.map((cat) => (
+                  {Array.isArray(categories) && categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
                     </option>
@@ -420,6 +578,21 @@ const DashboardPage = () => {
                 )}
               </div>
               <div className="mb-4">
+                <label htmlFor="dated" className="mb-2 block text-sm font-bold">
+                  Date
+                </label>
+                <input
+                  id="dated"
+                  type="date"
+                  value={currentTransaction.dated}
+                  onChange={handleInputChange}
+                  className={`w-full appearance-none rounded border bg-black px-4 py-3 leading-tight text-green-300 shadow [&::-webkit-calendar-picker-indicator]:invert focus:shadow-[0_0_10px_rgba(34,197,94,0.5)] focus:outline-none ${formErrors.dated ? 'border-red-500 focus:border-red-500' : 'border-green-600 focus:border-green-400'}`}
+                />
+                {formErrors.dated && (
+                  <p className="mt-1 text-xs text-red-500">{formErrors.dated}</p>
+                )}
+              </div>
+              <div className="mb-4">
                 <label htmlFor="type" className="mb-2 block text-sm font-bold">
                   Type
                 </label>
@@ -432,6 +605,18 @@ const DashboardPage = () => {
                   <option value="expense">Expense</option>
                   <option value="income">Income</option>
                 </select>
+              </div>
+              <div className="mb-6">
+                <label htmlFor="recurring" className="flex items-center space-x-3 text-sm font-bold">
+                  <input
+                    id="recurring"
+                    type="checkbox"
+                    checked={currentTransaction.recurring === 1}
+                    onChange={handleInputChange}
+                    className="matrix-checkbox h-5 w-5"
+                  />
+                  <span>Recurring Only</span>
+                </label>
               </div>
               <div className="flex justify-end space-x-4">
                 <button

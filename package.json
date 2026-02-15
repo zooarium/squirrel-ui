@@ -11,7 +11,7 @@
     "build": "vite build",
     "lint": "eslint . --ignore-pattern 'android/**'",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write . --ignore-path ./.gitignore --exclude 'android/**'",
+    "format": "prettier --write . --ignore-path ./.prettierignore",
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview"
