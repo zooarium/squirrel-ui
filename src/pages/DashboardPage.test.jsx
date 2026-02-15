@@ -156,8 +156,8 @@ describe('DashboardPage', () => {
     // The dated field is 2026-02-18. Local date string depends on locale.
     // Assuming en-US or similar where it contains 2026, 2, 18 or similar.
     // To represent this reliably, we can check for the formatted date.
-    // In the component: new Date(transaction.dated).toLocaleDateString()
-    const expectedDate = new Date("2026-02-18T00:00:00Z").toLocaleDateString();
+    // In the component: new Date(transaction.dated).toLocaleDateString('en-GB')
+    const expectedDate = new Date("2026-02-18T00:00:00Z").toLocaleDateString('en-GB');
     
     await waitFor(() => expect(screen.getByText(expectedDate)).toBeInTheDocument());
     expect(screen.getAllByText('Food').length).toBeGreaterThan(0);
