@@ -176,7 +176,7 @@ const DashboardPage = () => {
       amount: parseFloat(amount),
       type,
       category_id: category_id ? parseInt(category_id, 10) : null,
-      dated,
+      dated: new Date(dated).toISOString(),
       recurring: parseInt(recurring, 10),
     };
 
@@ -457,7 +457,7 @@ const DashboardPage = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {new Date(transaction.created_at).toLocaleDateString()}
+                        {new Date(transaction.dated).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
                         <button
