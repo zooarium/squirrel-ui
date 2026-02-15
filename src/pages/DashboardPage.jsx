@@ -2,15 +2,30 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNotification } from '../context/NotificationContext';
 import MatrixRain from '../components/MatrixRain';
 import ConfirmDialog from '../components/ConfirmDialog';
-import Header from '../components/Header'; // Assuming Header is in components
+import Header from '../components/Header';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
 const DashboardPage = () => {
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [stats, setStats] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('list');
   const [currentTransaction, setCurrentTransaction] = useState({
     amount: '',
     type: 'expense',
@@ -34,6 +49,9 @@ const DashboardPage = () => {
 
   const { showNotification } = useNotification();
   const firstInputRef = useRef(null);
+
+  // Matrix Theme Colors for Charts
+  const COLORS = ['#4ade80', '#22c55e', '#16a34a', '#15803d', '#166534', '#86efac', '#bbf7d0'];
 
   useEffect(() => {
     if (isModalOpen && firstInputRef.current) {
@@ -61,9 +79,12 @@ const DashboardPage = () => {
       });
       if (!response.ok) throw new Error('Failed to fetch transactions');
       const data = await response.json();
-      // The API returns { data: { transactions: [], stats: {} } }
+      
       const transactionsData = data.data?.transactions || (Array.isArray(data.data) ? data.data : []);
+      const statsData = data.data?.stats || {};
+      
       setTransactions(transactionsData);
+      setStats(statsData);
     } catch (err) {
       setError(err.message);
       showNotification(err.message, 'error');
@@ -84,7 +105,6 @@ const DashboardPage = () => {
       });
       if (!response.ok) throw new Error('Failed to fetch categories');
       const data = await response.json();
-      // Handle both { data: [...] } and { data: { categories: [...] } }
       const categoriesData = data.data?.categories || (Array.isArray(data.data) ? data.data : []);
       setCategories(categoriesData);
     } catch (err) {
@@ -243,6 +263,24 @@ const DashboardPage = () => {
     return category ? category.name : 'N/A';
   };
 
+  // Chart Data Preparation
+  const pieData = stats.category_wise_amount_sum?.map((item) => ({
+    name: getCategoryName(item.category_id),
+    value: item.total_sum,
+  })) || [];
+
+  const barData1 = stats.category_top_10_by_amount_sum?.map((item) => ({
+    name: getCategoryName(item.category_id),
+    total_sum: item.total_sum,
+  })) || [];
+
+  const barData2 = stats.top_10_by_amount?.map((item) => ({
+    name: `${getCategoryName(item.category_id)} (${new Date(item.dated).toLocaleDateString('en-GB')})`,
+    amount: item.amount,
+    date: new Date(item.dated).toLocaleDateString('en-GB'),
+    type: item.type,
+  })) || [];
+
   return (
     <div className="min-h-screen bg-black p-8 font-mono text-green-400">
       <MatrixRain />
@@ -279,231 +317,341 @@ const DashboardPage = () => {
           </button>
         </div>
 
-          <div className="mb-6 flex flex-wrap items-end gap-4">
-            <div className="flex-1 min-w-[150px] max-w-xs">
-              <label htmlFor="filter-category" className="mb-2 block text-xs font-bold uppercase text-green-400">
-                Category
-              </label>
-              <select
-                id="filter-category"
-                name="category_id"
-                value={filters.category_id}
-                onChange={handleFilterChange}
-                className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
-              >
-                <option value="">All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+        {/* Tabs */}
+        <div className="mb-6 flex space-x-2 border-b border-green-800">
+          <button
+            onClick={() => setActiveTab('list')}
+            className={`px-6 py-3 text-sm font-bold uppercase transition-colors duration-300 focus:outline-none ${
+              activeTab === 'list'
+                ? 'border-b-2 border-green-400 text-green-400 bg-green-900/10'
+                : 'text-green-700 hover:text-green-500'
+            }`}
+          >
+            List
+          </button>
+          <button
+            onClick={() => setActiveTab('charts')}
+            className={`px-6 py-3 text-sm font-bold uppercase transition-colors duration-300 focus:outline-none ${
+              activeTab === 'charts'
+                ? 'border-b-2 border-green-400 text-green-400 bg-green-900/10'
+                : 'text-green-700 hover:text-green-500'
+            }`}
+          >
+            Visualizations
+          </button>
+        </div>
 
-            <div className="flex-1 min-w-[150px] max-w-xs">
-              <label htmlFor="filter-dated" className="mb-2 block text-xs font-bold uppercase text-green-400">
-                Date Range
-              </label>
-              <select
-                id="filter-dated"
-                name="dated"
-                value={filters.dated}
-                onChange={handleFilterChange}
-                className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
-              >
-                <option value="">All Time</option>
-                <option value="today">Today</option>
-                <option value="yesterday">Yesterday</option>
-                <option value="this month">This Month</option>
-                <option value="last month">Last Month</option>
-                <option value="this year">This Year</option>
-                <option value="last year">Last Year</option>
-                <option value="custom">Custom</option>
-              </select>
-            </div>
-
-            {filters.dated === 'custom' && (
-              <>
-                <div className="flex-1 min-w-[140px] max-w-xs">
-                  <label htmlFor="filter-from" className="mb-2 block text-xs font-bold uppercase text-green-400">
-                    From Date
-                  </label>
-                  <input
-                    id="filter-from"
-                    name="from"
-                    type="date"
-                    value={filters.from}
-                    onChange={handleFilterChange}
-                    className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 [&::-webkit-calendar-picker-indicator]:invert focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
-                  />
-                </div>
-                <div className="flex-1 min-w-[140px] max-w-xs">
-                  <label htmlFor="filter-to" className="mb-2 block text-xs font-bold uppercase text-green-400">
-                    To Date
-                  </label>
-                  <input
-                    id="filter-to"
-                    name="to"
-                    type="date"
-                    value={filters.to}
-                    onChange={handleFilterChange}
-                    className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 [&::-webkit-calendar-picker-indicator]:invert focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
-                  />
-                </div>
-              </>
-            )}
-
-            <div className="flex items-center pb-3 pl-2">
-              <label htmlFor="filter-recurring" className="flex cursor-pointer items-center space-x-2 text-sm font-bold text-green-400">
-                <input
-                  id="filter-recurring"
-                  name="recurring"
-                  type="checkbox"
-                  checked={filters.recurring === '1'}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, recurring: e.target.checked ? '1' : '' }))
-                  }
-                  className="matrix-checkbox h-5 w-5"
-                />
-                <span>Recurring Only</span>
-              </label>
-            </div>
-          </div>
-
-        {isLoading ? (
-          <div className="flex h-64 items-center justify-center text-lg">
-            Loading Transactions...
-          </div>
-        ) : error ? (
-          <div className="flex h-64 flex-col items-center justify-center space-y-4 rounded-lg border border-red-500 bg-red-900/20 p-8 text-red-500">
-            <p className="text-xl font-bold">Error: {error}</p>
-            <button
-              onClick={() => {
-                setError(null);
-                fetchTransactions();
-                fetchCategories();
-              }}
-              className="rounded bg-red-700 px-4 py-2 font-bold text-white hover:bg-red-600"
-            >
-              Retry
-            </button>
-          </div>
-        ) : transactions.length === 0 ? (
-          <div className="flex h-64 flex-col items-center justify-center space-y-4 rounded-lg border border-green-600 bg-green-900/10 p-8 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
-            <p className="text-xl">No transactions found.</p>
-            <button
-              onClick={() => handleOpenModal()}
-              className="rounded border border-green-600 bg-black px-4 py-2 hover:bg-green-900/20"
-            >
-              Add your first transaction
-            </button>
-          </div>
-        ) : (
-          <main>
-            <div className="overflow-x-auto rounded-lg border border-green-600 bg-black/80 shadow-[0_0_15px_rgba(34,197,94,0.3)] backdrop-blur-sm">
-              <table className="min-w-full divide-y divide-green-700">
-                <thead className="bg-black/50">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-green-300 uppercase"
-                    >
-                      Category
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-green-300 uppercase"
-                    >
-                      Amount
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-green-300 uppercase"
-                    >
-                      Type
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-green-300 uppercase"
-                    >
-                      Date
-                    </th>
-                    <th scope="col" className="relative px-6 py-3">
-                      <span className="sr-only">Actions</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-green-800">
-                  {Array.isArray(transactions) && transactions.map((transaction) => (
-                    <tr key={transaction.id} className="hover:bg-green-900/20">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getCategoryName(transaction.category_id)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {new Intl.NumberFormat('en-IN', {
-                          style: 'currency',
-                          currency: 'INR',
-                        }).format(transaction.amount)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                            transaction.type === 'income'
-                              ? 'bg-green-700 text-green-100'
-                              : 'bg-red-700 text-red-100'
-                          }`}
-                        >
-                          {transaction.type}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {new Date(transaction.dated).toLocaleDateString('en-GB')}
-                      </td>
-                      <td className="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
-                        <button
-                          onClick={() => handleOpenModal(transaction)}
-                          className="text-blue-400 hover:text-blue-300"
-                          title="Edit"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
-                            <path
-                              fillRule="evenodd"
-                              d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleDeleteRequest(transaction)}
-                          className="ml-4 text-red-500 hover:text-red-400"
-                          title="Delete"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
+        {activeTab === 'list' ? (
+          <>
+            <div className="mb-6 flex flex-wrap items-end gap-4">
+              <div className="flex-1 min-w-[150px] max-w-xs">
+                <label htmlFor="filter-category" className="mb-2 block text-xs font-bold uppercase text-green-400">
+                  Category
+                </label>
+                <select
+                  id="filter-category"
+                  name="category_id"
+                  value={filters.category_id}
+                  onChange={handleFilterChange}
+                  className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
+                >
+                  <option value="">All Categories</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
                   ))}
-                </tbody>
-              </table>
+                </select>
+              </div>
+
+              <div className="flex-1 min-w-[150px] max-w-xs">
+                <label htmlFor="filter-dated" className="mb-2 block text-xs font-bold uppercase text-green-400">
+                  Date Range
+                </label>
+                <select
+                  id="filter-dated"
+                  name="dated"
+                  value={filters.dated}
+                  onChange={handleFilterChange}
+                  className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
+                >
+                  <option value="">All Time</option>
+                  <option value="today">Today</option>
+                  <option value="yesterday">Yesterday</option>
+                  <option value="this month">This Month</option>
+                  <option value="last month">Last Month</option>
+                  <option value="this year">This Year</option>
+                  <option value="last year">Last Year</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </div>
+
+              {filters.dated === 'custom' && (
+                <>
+                  <div className="flex-1 min-w-[140px] max-w-xs">
+                    <label htmlFor="filter-from" className="mb-2 block text-xs font-bold uppercase text-green-400">
+                      From Date
+                    </label>
+                    <input
+                      id="filter-from"
+                      name="from"
+                      type="date"
+                      value={filters.from}
+                      onChange={handleFilterChange}
+                      className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 [&::-webkit-calendar-picker-indicator]:invert focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-[140px] max-w-xs">
+                    <label htmlFor="filter-to" className="mb-2 block text-xs font-bold uppercase text-green-400">
+                      To Date
+                    </label>
+                    <input
+                      id="filter-to"
+                      name="to"
+                      type="date"
+                      value={filters.to}
+                      onChange={handleFilterChange}
+                      className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 [&::-webkit-calendar-picker-indicator]:invert focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="flex items-center pb-3 pl-2">
+                <label htmlFor="filter-recurring" className="flex cursor-pointer items-center space-x-2 text-sm font-bold text-green-400">
+                  <input
+                    id="filter-recurring"
+                    name="recurring"
+                    type="checkbox"
+                    checked={filters.recurring === '1'}
+                    onChange={(e) =>
+                      setFilters((prev) => ({ ...prev, recurring: e.target.checked ? '1' : '' }))
+                    }
+                    className="matrix-checkbox h-5 w-5"
+                  />
+                  <span>Recurring Only</span>
+                </label>
+              </div>
             </div>
-          </main>
+
+            {isLoading ? (
+              <div className="flex h-64 items-center justify-center text-lg">
+                Loading Transactions...
+              </div>
+            ) : error ? (
+              <div className="flex h-64 flex-col items-center justify-center space-y-4 rounded-lg border border-red-500 bg-red-900/20 p-8 text-red-500">
+                <p className="text-xl font-bold">Error: {error}</p>
+                <button
+                  onClick={() => {
+                    setError(null);
+                    fetchTransactions();
+                    fetchCategories();
+                  }}
+                  className="rounded bg-red-700 px-4 py-2 font-bold text-white hover:bg-red-600"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : transactions.length === 0 ? (
+              <div className="flex h-64 flex-col items-center justify-center space-y-4 rounded-lg border border-green-600 bg-green-900/10 p-8 text-green-400 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+                <p className="text-xl">No transactions found.</p>
+                <button
+                  onClick={() => handleOpenModal()}
+                  className="rounded border border-green-600 bg-black px-4 py-2 hover:bg-green-900/20"
+                >
+                  Add your first transaction
+                </button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border border-green-600 bg-black/80 shadow-[0_0_15px_rgba(34,197,94,0.3)] backdrop-blur-sm">
+                <table className="min-w-full divide-y divide-green-700">
+                  <thead className="bg-black/50">
+                    <tr>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium tracking-wider text-green-300 uppercase"
+                      >
+                        Category
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium tracking-wider text-green-300 uppercase"
+                      >
+                        Amount
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium tracking-wider text-green-300 uppercase"
+                      >
+                        Type
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium tracking-wider text-green-300 uppercase"
+                      >
+                        Date
+                      </th>
+                      <th scope="col" className="relative px-6 py-3">
+                        <span className="sr-only">Actions</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-green-800">
+                    {Array.isArray(transactions) && transactions.map((transaction) => (
+                      <tr key={transaction.id} className="hover:bg-green-900/20">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {getCategoryName(transaction.category_id)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {new Intl.NumberFormat('en-IN', {
+                            style: 'currency',
+                            currency: 'INR',
+                          }).format(transaction.amount)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                              transaction.type === 'income'
+                                ? 'bg-green-700 text-green-100'
+                                : 'bg-red-700 text-red-100'
+                            }`}
+                          >
+                            {transaction.type}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {new Date(transaction.dated).toLocaleDateString('en-GB')}
+                        </td>
+                        <td className="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
+                          <button
+                            onClick={() => handleOpenModal(transaction)}
+                            className="text-blue-400 hover:text-blue-300"
+                            title="Edit"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                              <path
+                                fillRule="evenodd"
+                                d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRequest(transaction)}
+                            className="ml-4 text-red-500 hover:text-red-400"
+                            title="Delete"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            {/* Pie Chart: Category Wise Amount Sum */}
+            <div className="rounded-lg border border-green-600 bg-black/80 p-6 shadow-[0_0_15px_rgba(34,197,94,0.3)] backdrop-blur-sm">
+              <h3 className="mb-4 text-center text-lg font-bold text-green-300">
+                Expense Distribution by Category
+              </h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#22c55e"
+                      dataKey="value"
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'black', borderColor: '#22c55e', color: '#4ade80' }}
+                      itemStyle={{ color: '#4ade80' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Bar Chart: Top 10 Categories by Sum */}
+            <div className="rounded-lg border border-green-600 bg-black/80 p-6 shadow-[0_0_15px_rgba(34,197,94,0.3)] backdrop-blur-sm">
+              <h3 className="mb-4 text-center text-lg font-bold text-green-300">
+                Top Categories by Spending
+              </h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barData1} layout="vertical" margin={{ left: 20, right: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#14532d" horizontal={false} />
+                    <XAxis type="number" stroke="#4ade80" />
+                    <YAxis dataKey="name" type="category" stroke="#4ade80" width={150} />
+                    <Tooltip
+                      cursor={{ fill: '#14532d', opacity: 0.3 }}
+                      contentStyle={{ backgroundColor: 'black', borderColor: '#22c55e', color: '#4ade80' }}
+                    />
+                    <Bar dataKey="total_sum" fill="#22c55e" radius={[0, 4, 4, 0]}>
+                      {barData1.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Bar Chart: Top 10 Transactions by Amount */}
+            <div className="col-span-1 rounded-lg border border-green-600 bg-black/80 p-6 shadow-[0_0_15px_rgba(34,197,94,0.3)] backdrop-blur-sm lg:col-span-2">
+              <h3 className="mb-4 text-center text-lg font-bold text-green-300">
+                Top Transactions by Amount
+              </h3>
+              <div className="h-[520px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barData2}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#14532d" vertical={false} />
+                    <XAxis dataKey="name" stroke="#4ade80" angle={-45} textAnchor="end" height={80} interval={0} fontSize={12} />
+                    <YAxis stroke="#4ade80" />
+                    <Tooltip
+                       contentStyle={{ backgroundColor: 'black', borderColor: '#22c55e', color: '#4ade80' }}
+                       labelStyle={{ color: '#86efac' }}
+                    />
+                    <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                    <Bar dataKey="amount" fill="#22c55e" name="Amount" radius={[4, 4, 0, 0]}>
+                       {barData2.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.type === 'income' ? '#22c55e' : '#ef4444'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 

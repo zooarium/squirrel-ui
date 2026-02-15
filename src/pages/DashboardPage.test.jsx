@@ -36,6 +36,13 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
+// Mock ResizeObserver for Recharts
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 describe('DashboardPage', () => {
   
   beforeEach(() => {
@@ -162,5 +169,57 @@ describe('DashboardPage', () => {
     await waitFor(() => expect(screen.getByText(expectedDate)).toBeInTheDocument());
     expect(screen.getAllByText('Food').length).toBeGreaterThan(0);
     expect(screen.getByText('expense')).toBeInTheDocument();
+  });
+
+  it('switches to charts tab and renders visualizations', async () => {
+    // Override fetch mock for this test
+    window.fetch = vi.fn((url) => {
+      if (url.includes('/transactions')) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              data: {
+                transactions: [],
+                stats: {
+                  category_wise_amount_sum: [{ category_id: 1, total_sum: 100 }],
+                  category_top_10_by_amount_sum: [{ category_id: 1, total_sum: 100 }],
+                  top_10_by_amount: [
+                    {
+                      id: 1,
+                      amount: 100,
+                      category_id: 1,
+                      dated: '2026-02-15',
+                      type: 'expense',
+                    },
+                  ],
+                },
+              },
+            }),
+        });
+      }
+      if (url.includes('/categories')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ data: [{ id: 1, name: 'Food' }] }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(<DashboardPage />);
+    
+    // Initial wait
+    await waitFor(() => expect(screen.getByText('Visualizations')).toBeInTheDocument());
+
+    // Switch tab
+    fireEvent.click(screen.getByText('Visualizations'));
+
+    // Check for chart titles (recharts content is harder to query, so we check container titles)
+    await waitFor(() => {
+      expect(screen.getByText('Expense Distribution by Category')).toBeInTheDocument();
+      expect(screen.getByText('Top Categories by Spending')).toBeInTheDocument();
+      expect(screen.getByText('Top Transactions by Amount')).toBeInTheDocument();
+    });
   });
 });
