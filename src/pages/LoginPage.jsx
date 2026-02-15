@@ -42,60 +42,95 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-black p-4 font-mono text-green-400">
+    <div className="flex min-h-screen items-center justify-center bg-black p-4 font-mono text-green-400">
       <MatrixRain />
-      <header className="relative z-10 mb-8 text-center">
-        <h1 className="text-shadow-glow animate-pulse text-5xl font-bold tracking-widest uppercase">
-          Vyaya
-        </h1>
-        <p className="mt-2 text-sm font-bold text-green-500">Unlocking the digital realm.</p>
-      </header>
+      
+      <div className="relative z-10 w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        {/* Left Side: Branding & Features */}
+        <div className="space-y-8 p-6">
+          <header className="text-left">
+            <h1 className="text-shadow-glow animate-pulse text-6xl font-bold tracking-widest uppercase mb-2">
+              Vyaya
+            </h1>
+            <p className="text-xl font-bold text-green-500">Personal Expense Tracker & Financial Matrix.</p>
+          </header>
 
-      <main className="relative z-10 w-full max-w-md rounded-lg border border-green-600 bg-black/80 p-8 shadow-[0_0_15px_rgba(34,197,94,0.3)] backdrop-blur-sm">
-        <h2 className="text-shadow-glow mb-6 text-center text-3xl font-semibold text-green-400">
-          Login
-        </h2>
-        <form className="space-y-6" onSubmit={handleLogin}>
-          <div>
-            <label htmlFor="email" className="mb-2 block text-sm font-bold text-green-400">
-              Email Address
-            </label>
-            <input
-              type="email"
-              id="email"
-              className="w-full appearance-none rounded border border-green-600 bg-black px-4 py-3 leading-tight text-green-300 shadow transition-shadow duration-300 focus:border-green-400 focus:shadow-[0_0_10px_rgba(34,197,94,0.5)] focus:outline-none"
-              placeholder="neo@matrix.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+          <div className="border border-green-900/50 rounded-lg overflow-hidden shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+             <img 
+               src="/images/login-feature.jpg" 
+               alt="Matrix-themed Expense Dashboard" 
+               className="w-full h-auto opacity-80 hover:opacity-100 transition-opacity duration-300 object-cover max-h-[300px]"
+             />
           </div>
-          <div>
-            <label htmlFor="password" className="mb-2 block text-sm font-bold text-green-400">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              className="w-full appearance-none rounded border border-green-600 bg-black px-4 py-3 leading-tight text-green-300 shadow transition-shadow duration-300 focus:border-green-400 focus:shadow-[0_0_10px_rgba(34,197,94,0.5)] focus:outline-none"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          <div className="flex items-center justify-center">
-            <button
-              type="submit"
-              className="transform rounded bg-green-700 px-6 py-3 font-bold tracking-wider text-black uppercase transition duration-300 ease-in-out hover:scale-105 hover:bg-green-600 focus:shadow-[0_0_15px_rgba(34,197,94,0.6)] focus:outline-none"
-            >
-              Enter the Matrix
-            </button>
-          </div>
-        </form>
-      </main>
 
-      <footer className="relative z-10 mt-8 text-center text-xs text-green-500 opacity-80">
+          <div className="space-y-4">
+            <h3 className="text-2xl font-bold text-green-300 border-b border-green-800 pb-2">System Capabilities</h3>
+            <ul className="space-y-3">
+              {[
+                "Track Daily Expenses & Income Streams",
+                "Visualize Spending Patterns & Trends",
+                "Smart Categorization of Transactions",
+                "Secure Personal Financial Data Vault"
+              ].map((feature, index) => (
+                <li key={index} className="flex items-center space-x-3 text-green-400/90">
+                  <span className="text-green-500">➜</span>
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Right Side: Login Form */}
+        <div className="w-full max-w-md mx-auto rounded-lg border border-green-600 bg-black/90 p-8 shadow-[0_0_25px_rgba(34,197,94,0.4)] backdrop-blur-md">
+          <h2 className="text-shadow-glow mb-8 text-center text-3xl font-semibold text-green-400 uppercase tracking-wider">
+            Access Terminal
+          </h2>
+          <form className="space-y-6" onSubmit={handleLogin}>
+            <div>
+              <label htmlFor="email" className="mb-2 block text-sm font-bold text-green-400 uppercase tracking-wide">
+                Operator ID (Email)
+              </label>
+              <input
+                type="email"
+                id="email"
+                className="w-full appearance-none rounded border border-green-600 bg-black px-4 py-3 leading-tight text-green-300 shadow transition-all duration-300 focus:border-green-400 focus:shadow-[0_0_15px_rgba(34,197,94,0.5)] focus:outline-none placeholder-green-800"
+                placeholder="neo@matrix.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="mb-2 block text-sm font-bold text-green-400 uppercase tracking-wide">
+                Access Code (Password)
+              </label>
+              <input
+                type="password"
+                id="password"
+                className="w-full appearance-none rounded border border-green-600 bg-black px-4 py-3 leading-tight text-green-300 shadow transition-all duration-300 focus:border-green-400 focus:shadow-[0_0_15px_rgba(34,197,94,0.5)] focus:outline-none placeholder-green-800"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center justify-center pt-4">
+              <button
+                type="submit"
+                className="w-full transform rounded bg-green-700 px-6 py-4 font-bold tracking-widest text-black uppercase transition duration-300 ease-in-out hover:scale-105 hover:bg-green-600 hover:shadow-[0_0_20px_rgba(34,197,94,0.8)] focus:outline-none"
+              >
+                Enter the Matrix
+              </button>
+            </div>
+          </form>
+          
+          <div className="mt-6 text-center text-xs text-green-600">
+             <p>Restricted Access. Unauthorized entry is prohibited.</p>
+          </div>
+        </div>
+      </div>
+      
+      <footer className="fixed bottom-4 left-0 w-full text-center text-xs text-green-800 opacity-60 pointer-events-none">
         <p>&copy; {new Date().getFullYear()} Phoenix Code Labs. All rights reserved.</p>
-        <p>A journey into the digital consciousness.</p>
       </footer>
     </div>
   );
