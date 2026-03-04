@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useNotification } from '../context/NotificationContext';
+import SquirrelLogo from './SquirrelLogo';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -33,7 +34,10 @@ const Header = () => {
   return (
     <header className="relative z-10 mb-8 w-full py-4 pr-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-shadow-glow text-3xl font-bold tracking-widest">VYAYA</h1>
+        <SquirrelLogo 
+          className="transition-transform hover:scale-105 cursor-pointer" 
+          onClick={() => navigate('/dashboard')} 
+        />
         <div className="flex items-center space-x-4">
           <span className="text-sm text-green-300">Welcome, {user ? user.firstname : 'Agent'}</span>
           <button

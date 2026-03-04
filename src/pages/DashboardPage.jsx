@@ -79,10 +79,10 @@ const DashboardPage = () => {
       });
       if (!response.ok) throw new Error('Failed to fetch transactions');
       const data = await response.json();
-      
+
       const transactionsData = data.data?.transactions || (Array.isArray(data.data) ? data.data : []);
       const statsData = data.data?.stats || {};
-      
+
       setTransactions(transactionsData);
       setStats(statsData);
     } catch (err) {
@@ -343,94 +343,96 @@ const DashboardPage = () => {
 
         {activeTab === 'list' ? (
           <>
-            <div className="mb-6 flex flex-wrap items-end gap-4">
-              <div className="flex-1 min-w-[150px] max-w-xs">
-                <label htmlFor="filter-category" className="mb-2 block text-xs font-bold uppercase text-green-400">
-                  Category
-                </label>
-                <select
-                  id="filter-category"
-                  name="category_id"
-                  value={filters.category_id}
-                  onChange={handleFilterChange}
-                  className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
-                >
-                  <option value="">All Categories</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div className="mb-6 rounded-lg border border-green-600 bg-black/80 p-4 shadow-[0_0_10px_rgba(34,197,94,0.2)]">
+              <div className="flex flex-wrap items-end gap-4">
+                <div className="flex-1 min-w-[150px] max-w-xs">
+                  <label htmlFor="filter-category" className="mb-2 block text-xs font-bold uppercase text-green-400">
+                    Category
+                  </label>
+                  <select
+                    id="filter-category"
+                    name="category_id"
+                    value={filters.category_id}
+                    onChange={handleFilterChange}
+                    className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
+                  >
+                    <option value="">All</option>
+                    {categories.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="flex-1 min-w-[150px] max-w-xs">
-                <label htmlFor="filter-dated" className="mb-2 block text-xs font-bold uppercase text-green-400">
-                  Date Range
-                </label>
-                <select
-                  id="filter-dated"
-                  name="dated"
-                  value={filters.dated}
-                  onChange={handleFilterChange}
-                  className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
-                >
-                  <option value="">All Time</option>
-                  <option value="today">Today</option>
-                  <option value="yesterday">Yesterday</option>
-                  <option value="this month">This Month</option>
-                  <option value="last month">Last Month</option>
-                  <option value="this year">This Year</option>
-                  <option value="last year">Last Year</option>
-                  <option value="custom">Custom</option>
-                </select>
-              </div>
+                <div className="flex-1 min-w-[150px] max-w-xs">
+                  <label htmlFor="filter-dated" className="mb-2 block text-xs font-bold uppercase text-green-400">
+                    Date Range
+                  </label>
+                  <select
+                    id="filter-dated"
+                    name="dated"
+                    value={filters.dated}
+                    onChange={handleFilterChange}
+                    className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
+                  >
+                    <option value="">All</option>
+                    <option value="today">Today</option>
+                    <option value="yesterday">Yesterday</option>
+                    <option value="this month">This Month</option>
+                    <option value="last month">Last Month</option>
+                    <option value="this year">This Year</option>
+                    <option value="last year">Last Year</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
 
-              {filters.dated === 'custom' && (
-                <>
-                  <div className="flex-1 min-w-[140px] max-w-xs">
-                    <label htmlFor="filter-from" className="mb-2 block text-xs font-bold uppercase text-green-400">
-                      From Date
-                    </label>
+                {filters.dated === 'custom' && (
+                  <>
+                    <div className="flex-1 min-w-[140px] max-w-xs">
+                      <label htmlFor="filter-from" className="mb-2 block text-xs font-bold uppercase text-green-400">
+                        From Date
+                      </label>
+                      <input
+                        id="filter-from"
+                        name="from"
+                        type="date"
+                        value={filters.from}
+                        onChange={handleFilterChange}
+                        className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 [&::-webkit-calendar-picker-indicator]:invert focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-[140px] max-w-xs">
+                      <label htmlFor="filter-to" className="mb-2 block text-xs font-bold uppercase text-green-400">
+                        To Date
+                      </label>
+                      <input
+                        id="filter-to"
+                        name="to"
+                        type="date"
+                        value={filters.to}
+                        onChange={handleFilterChange}
+                        className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 [&::-webkit-calendar-picker-indicator]:invert focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div className="flex items-center pb-3 pl-2">
+                  <label htmlFor="filter-recurring" className="flex cursor-pointer items-center space-x-2 text-sm font-bold text-green-400">
                     <input
-                      id="filter-from"
-                      name="from"
-                      type="date"
-                      value={filters.from}
-                      onChange={handleFilterChange}
-                      className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 [&::-webkit-calendar-picker-indicator]:invert focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
+                      id="filter-recurring"
+                      name="recurring"
+                      type="checkbox"
+                      checked={filters.recurring === '1'}
+                      onChange={(e) =>
+                        setFilters((prev) => ({ ...prev, recurring: e.target.checked ? '1' : '' }))
+                      }
+                      className="matrix-checkbox h-5 w-5"
                     />
-                  </div>
-                  <div className="flex-1 min-w-[140px] max-w-xs">
-                    <label htmlFor="filter-to" className="mb-2 block text-xs font-bold uppercase text-green-400">
-                      To Date
-                    </label>
-                    <input
-                      id="filter-to"
-                      name="to"
-                      type="date"
-                      value={filters.to}
-                      onChange={handleFilterChange}
-                      className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 [&::-webkit-calendar-picker-indicator]:invert focus:border-green-400 focus:outline-none focus:shadow-[0_0_10px_rgba(34,197,94,0.4)]"
-                    />
-                  </div>
-                </>
-              )}
-
-              <div className="flex items-center pb-3 pl-2">
-                <label htmlFor="filter-recurring" className="flex cursor-pointer items-center space-x-2 text-sm font-bold text-green-400">
-                  <input
-                    id="filter-recurring"
-                    name="recurring"
-                    type="checkbox"
-                    checked={filters.recurring === '1'}
-                    onChange={(e) =>
-                      setFilters((prev) => ({ ...prev, recurring: e.target.checked ? '1' : '' }))
-                    }
-                    className="matrix-checkbox h-5 w-5"
-                  />
-                  <span>Recurring Only</span>
-                </label>
+                    <span>Recurring Only</span>
+                  </label>
+                </div>
               </div>
             </div>
 

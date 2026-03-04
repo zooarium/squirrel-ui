@@ -1,10 +1,10 @@
-# Vyaya-UI AI Agent Context
+# Squirrel-UI AI Agent Context
 
-This document provides context and guidelines for AI agents working on the Vyaya-UI codebase.
+This document provides context and guidelines for AI agents working on the Squirrel-UI codebase.
 
 ## 🎯 Project Overview
 
-Vyaya-UI is a React-based Expense Tracker application with a distinct "Matrix" theme. It allows users to manage transactions (income/expense), categorize them, and view financial summaries. The project prioritizes a high-contrast, hacker-aesthetic UI.
+Squirrel-UI is a React-based Expense Tracker application with a distinct "Matrix" theme. It allows users to manage transactions (income/expense), categorize them, and view financial summaries. The project prioritizes a high-contrast, hacker-aesthetic UI.
 
 ## 🎨 Design Guidelines
 

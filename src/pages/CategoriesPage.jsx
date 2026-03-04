@@ -230,15 +230,39 @@ const CategoriesPage = () => {
               <label htmlFor="filter-name" className="mb-2 block text-xs font-bold uppercase">
                 Search Name
               </label>
-              <input
-                id="filter-name"
-                name="name"
-                type="text"
-                value={searchTerm}
-                onChange={handleFilterChange}
-                placeholder="Filter by name..."
-                className="w-full rounded border border-green-600 bg-black px-3 py-2 text-green-300 focus:border-green-400 focus:outline-none"
-              />
+              <div className="relative">
+                <input
+                  id="filter-name"
+                  name="name"
+                  type="text"
+                  value={searchTerm}
+                  onChange={handleFilterChange}
+                  placeholder="Filter by name..."
+                  className="w-full rounded border border-green-600 bg-black pl-3 pr-10 py-2 text-green-300 focus:border-green-400 focus:outline-none"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-green-600 hover:text-green-400"
+                    aria-label="Clear search"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

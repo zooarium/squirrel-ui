@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Vyaya</string>
-    <string name="title_activity_main">Vyaya</string>
-    <string name="package_name">com.vyaya.ui</string>
-    <string name="custom_url_scheme">com.vyaya.ui</string>
+    <string name="app_name">Squirrel</string>
+    <string name="title_activity_main">Squirrel</string>
+    <string name="package_name">com.squirrel.ui</string>
+    <string name="custom_url_scheme">com.squirrel.ui</string>
 </resources>

@@ -1,6 +1,6 @@
-# Vyaya
+# Squirrel
 
-Vyaya is a modern community portal designed to connect people through shared moments, announcements, and essential community services. Built with a focus on ease of use and visual storytelling, it features a Pinterest-inspired masonry layout and multi-language support.
+Squirrel is a modern community portal designed to connect people through shared moments, announcements, and essential community services. Built with a focus on ease of use and visual storytelling, it features a Pinterest-inspired masonry layout and multi-language support.
 
 ## 🚀 Features
 
@@ -76,7 +76,7 @@ npm run test
 ## 📂 Project Structure
 
 ```
-vyaya-ui/
+squirrel-ui/
 ├── src/
 │   ├── assets/          # Static assets
 │   ├── components/      # Reusable UI components
@@ -105,5 +105,7 @@ npx cap open android
 ```
 
 ---
+
+## Turborepo
 
 Built with ❤️ by [Phoenix Code Labs](https://github.com/hirenchhatbar).

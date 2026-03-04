@@ -1,4 +1,4 @@
-package com.vyaya.ui;
+package com.squirrel.ui;
 
 import com.getcapacitor.BridgeActivity;
 

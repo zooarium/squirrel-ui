@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../context/NotificationContext';
 import MatrixRain from '../components/MatrixRain';
+import SquirrelLogo from '../components/SquirrelLogo';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('admin@admin.com');
@@ -45,44 +46,14 @@ const LoginPage = () => {
     <div className="flex min-h-screen items-center justify-center bg-black p-4 font-mono text-green-400">
       <MatrixRain />
       
-      <div className="relative z-10 w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-        {/* Left Side: Branding & Features */}
-        <div className="space-y-8 p-6">
-          <header className="text-left">
-            <h1 className="text-shadow-glow animate-pulse text-6xl font-bold tracking-widest uppercase mb-2">
-              Vyaya
-            </h1>
-            <p className="text-xl font-bold text-green-500">Personal Expense Tracker & Financial Matrix.</p>
-          </header>
-
-          <div className="border border-green-900/50 rounded-lg overflow-hidden shadow-[0_0_15px_rgba(34,197,94,0.2)]">
-             <img 
-               src="/images/login-feature.jpg" 
-               alt="Matrix-themed Expense Dashboard" 
-               className="w-full h-auto opacity-80 hover:opacity-100 transition-opacity duration-300 object-cover max-h-[300px]"
-             />
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-2xl font-bold text-green-300 border-b border-green-800 pb-2">System Capabilities</h3>
-            <ul className="space-y-3">
-              {[
-                "Track Daily Expenses & Income Streams",
-                "Visualize Spending Patterns & Trends",
-                "Smart Categorization of Transactions",
-                "Secure Personal Financial Data Vault"
-              ].map((feature, index) => (
-                <li key={index} className="flex items-center space-x-3 text-green-400/90">
-                  <span className="text-green-500">➜</span>
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+      <div className="relative z-10 w-full max-w-6xl flex flex-col md:grid md:grid-cols-2 gap-8 items-center">
+        {/* Mobile Header: App Name only */}
+        <div className="order-1 md:hidden w-full text-center mb-4 flex justify-center">
+          <SquirrelLogo size={60} className="animate-pulse" />
         </div>
 
-        {/* Right Side: Login Form */}
-        <div className="w-full max-w-md mx-auto rounded-lg border border-green-600 bg-black/90 p-8 shadow-[0_0_25px_rgba(34,197,94,0.4)] backdrop-blur-md">
+        {/* Right Side: Login Form (Order 2 on mobile, Column 2 on desktop) */}
+        <div className="order-2 md:order-2 w-full max-w-md mx-auto rounded-lg border border-green-600 bg-black/90 p-8 shadow-[0_0_25px_rgba(34,197,94,0.4)] backdrop-blur-md">
           <h2 className="text-shadow-glow mb-8 text-center text-3xl font-semibold text-green-400 uppercase tracking-wider">
             Access Terminal
           </h2>
@@ -125,6 +96,40 @@ const LoginPage = () => {
           
           <div className="mt-6 text-center text-xs text-green-600">
              <p>Restricted Access. Unauthorized entry is prohibited.</p>
+          </div>
+        </div>
+
+        {/* Left Side: Branding & Features (Order 3 on mobile, Column 1 on desktop) */}
+        <div className="order-3 md:order-1 space-y-8 p-6">
+          <header className="text-left hidden md:block">
+            <SquirrelLogo size={80} className="animate-pulse mb-2" />
+          </header>
+          
+          <p className="text-xl font-bold text-green-500 text-center md:text-left">Personal Expense Tracker & Financial Matrix.</p>
+
+          <div className="border border-green-900/50 rounded-lg overflow-hidden shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+             <img 
+               src="/images/login-feature.jpg" 
+               alt="Matrix-themed Expense Dashboard" 
+               className="w-full h-auto opacity-80 hover:opacity-100 transition-opacity duration-300 object-cover max-h-[300px]"
+             />
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-2xl font-bold text-green-300 border-b border-green-800 pb-2">System Capabilities</h3>
+            <ul className="space-y-3">
+              {[
+                "Track Daily Expenses & Income Streams",
+                "Visualize Spending Patterns & Trends",
+                "Smart Categorization of Transactions",
+                "Secure Personal Financial Data Vault"
+              ].map((feature, index) => (
+                <li key={index} className="flex items-center space-x-3 text-green-400/90">
+                  <span className="text-green-500">➜</span>
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
