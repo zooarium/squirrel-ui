@@ -1,62 +1,11 @@
-@import 'tailwindcss';
+/* Minimal overrides on top of Tabler */
 
-@layer base {
-  body {
-    background-color: black;
-    color: #4ade80; /* green-400 */
-    font-family: monospace;
-  }
+/* Ensure sidebar takes full height */
+.navbar-vertical.navbar-expand-lg {
+  min-height: 100vh;
 }
 
-@keyframes matrix-fall {
-  0% {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(100%);
-    opacity: 0;
-  }
-}
-
-.text-shadow-glow {
-  text-shadow:
-    0 0 5px rgba(74, 222, 128, 0.8),
-    0 0 10px rgba(74, 222, 128, 0.5);
-}
-
-.matrix-checkbox {
-  appearance: none;
-  -webkit-appearance: none;
-  background-color: black;
-  border: 2px solid #16a34a; /* green-600 */
-  border-radius: 0.25rem;
-  display: inline-block;
-  position: relative;
-  cursor: pointer;
-}
-
-.matrix-checkbox:checked {
-  background-color: #16a34a; /* green-600 */
-  border-color: #16a34a;
-}
-
-.matrix-checkbox:checked::after {
-  content: '';
-  position: absolute;
-  left: 5px;
-  top: 1px;
-  width: 6px;
-  height: 12px;
-  border: solid black;
-  border-width: 0 3px 3px 0;
-  transform: rotate(45deg);
-}
-
-.matrix-checkbox:focus {
-  outline: 2px solid #22c55e; /* green-500 */
-  outline-offset: 2px;
+/* Recharts tooltip radius */
+.recharts-default-tooltip {
+  border-radius: 4px !important;
 }

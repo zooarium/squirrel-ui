@@ -1,144 +1,88 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../context/NotificationContext';
-import MatrixRain from '../components/MatrixRain';
-import SquirrelLogo from '../components/SquirrelLogo';
+import { login } from '../api/auth';
 
-const LoginPage = () => {
-  const [email, setEmail] = useState('admin@admin.com');
-  const [password, setPassword] = useState('password123');
+export default function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { showNotification } = useNotification();
 
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setIsLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          accept: 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.data) {
-          localStorage.setItem('token', data.data.token);
-          localStorage.setItem('user', JSON.stringify(data.data.user));
-          showNotification('Login successful!', 'success');
-          navigate('/dashboard');
-        } else {
-          showNotification('Login failed: Invalid response structure', 'error');
-        }
-      } else {
-        showNotification('Login failed. Please check your credentials.', 'error');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      showNotification('An error occurred during login.', 'error');
+      const data = await login(email, password);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user ?? {}));
+      navigate('/dashboard');
+    } catch (err) {
+      showNotification(err.message, 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-black p-4 font-mono text-green-400">
-      <MatrixRain />
-      
-      <div className="relative z-10 w-full max-w-6xl flex flex-col md:grid md:grid-cols-2 gap-8 items-center">
-        {/* Mobile Header: App Name only */}
-        <div className="order-1 md:hidden w-full text-center mb-4 flex justify-center">
-          <SquirrelLogo size={60} className="animate-pulse" />
+    <div className="page page-center">
+      <div className="container container-tight py-4">
+        <div className="text-center mb-4">
+          <h1 className="fw-bold fs-1 mb-1">Squirrel</h1>
+          <p className="text-secondary">Personal Expense Tracker</p>
         </div>
 
-        {/* Right Side: Login Form (Order 2 on mobile, Column 2 on desktop) */}
-        <div className="order-2 md:order-2 w-full max-w-md mx-auto rounded-lg border border-green-600 bg-black/90 p-8 shadow-[0_0_25px_rgba(34,197,94,0.4)] backdrop-blur-md">
-          <h2 className="text-shadow-glow mb-8 text-center text-3xl font-semibold text-green-400 uppercase tracking-wider">
-            Access Terminal
-          </h2>
-          <form className="space-y-6" onSubmit={handleLogin}>
-            <div>
-              <label htmlFor="email" className="mb-2 block text-sm font-bold text-green-400 uppercase tracking-wide">
-                Operator ID (Email)
-              </label>
-              <input
-                type="email"
-                id="email"
-                className="w-full appearance-none rounded border border-green-600 bg-black px-4 py-3 leading-tight text-green-300 shadow transition-all duration-300 focus:border-green-400 focus:shadow-[0_0_15px_rgba(34,197,94,0.5)] focus:outline-none placeholder-green-800"
-                placeholder="neo@matrix.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="mb-2 block text-sm font-bold text-green-400 uppercase tracking-wide">
-                Access Code (Password)
-              </label>
-              <input
-                type="password"
-                id="password"
-                className="w-full appearance-none rounded border border-green-600 bg-black px-4 py-3 leading-tight text-green-300 shadow transition-all duration-300 focus:border-green-400 focus:shadow-[0_0_15px_rgba(34,197,94,0.5)] focus:outline-none placeholder-green-800"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <div className="flex items-center justify-center pt-4">
-              <button
-                type="submit"
-                className="w-full transform rounded bg-green-700 px-6 py-4 font-bold tracking-widest text-black uppercase transition duration-300 ease-in-out hover:scale-105 hover:bg-green-600 hover:shadow-[0_0_20px_rgba(34,197,94,0.8)] focus:outline-none"
-              >
-                Enter the Matrix
-              </button>
-            </div>
-          </form>
-          
-          <div className="mt-6 text-center text-xs text-green-600">
-             <p>Restricted Access. Unauthorized entry is prohibited.</p>
+        <div className="card card-md shadow-sm">
+          <div className="card-body">
+            <h2 className="h3 text-center mb-4">Sign in to your account</h2>
+            <form onSubmit={handleSubmit} noValidate>
+              <div className="mb-3">
+                <label htmlFor="email" className="form-label">
+                  Email address
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  className="form-control"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                />
+              </div>
+              <div className="mb-3">
+                <label htmlFor="password" className="form-label">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  className="form-control"
+                  placeholder="Your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                />
+              </div>
+              <div className="form-footer">
+                <button type="submit" className="btn btn-primary w-100" disabled={isLoading}>
+                  {isLoading && (
+                    <span className="spinner-border spinner-border-sm me-2" aria-hidden="true" />
+                  )}
+                  {isLoading ? 'Signing in…' : 'Sign in'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
 
-        {/* Left Side: Branding & Features (Order 3 on mobile, Column 1 on desktop) */}
-        <div className="order-3 md:order-1 space-y-8 p-6">
-          <header className="text-left hidden md:block">
-            <SquirrelLogo size={80} className="animate-pulse mb-2" />
-          </header>
-          
-          <p className="text-xl font-bold text-green-500 text-center md:text-left">Personal Expense Tracker & Financial Matrix.</p>
-
-          <div className="border border-green-900/50 rounded-lg overflow-hidden shadow-[0_0_15px_rgba(34,197,94,0.2)]">
-             <img 
-               src="/images/login-feature.jpg" 
-               alt="Matrix-themed Expense Dashboard" 
-               className="w-full h-auto opacity-80 hover:opacity-100 transition-opacity duration-300 object-cover max-h-[300px]"
-             />
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-2xl font-bold text-green-300 border-b border-green-800 pb-2">System Capabilities</h3>
-            <ul className="space-y-3">
-              {[
-                "Track Daily Expenses & Income Streams",
-                "Visualize Spending Patterns & Trends",
-                "Smart Categorization of Transactions",
-                "Secure Personal Financial Data Vault"
-              ].map((feature, index) => (
-                <li key={index} className="flex items-center space-x-3 text-green-400/90">
-                  <span className="text-green-500">➜</span>
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div className="text-center text-secondary mt-3 small">
+          &copy; {new Date().getFullYear()} Phoenix Code Labs
         </div>
       </div>
-      
-      <footer className="fixed bottom-4 left-0 w-full text-center text-xs text-green-800 opacity-60 pointer-events-none">
-        <p>&copy; {new Date().getFullYear()} Phoenix Code Labs. All rights reserved.</p>
-      </footer>
     </div>
   );
-};
-
-export default LoginPage;
+}
