@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { NotificationProvider } from './context/NotificationContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
@@ -24,6 +25,7 @@ function PageLoader() {
 
 export default function App() {
   return (
+    <ThemeProvider>
     <NotificationProvider>
       <BrowserRouter>
         <Suspense fallback={<PageLoader />}>
@@ -53,5 +55,6 @@ export default function App() {
         </Suspense>
       </BrowserRouter>
     </NotificationProvider>
+    </ThemeProvider>
   );
 }

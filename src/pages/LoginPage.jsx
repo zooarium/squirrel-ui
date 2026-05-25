@@ -4,8 +4,8 @@ import { useNotification } from '../context/NotificationContext';
 import { login } from '../api/auth';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@admin.com');
+  const [password, setPassword] = useState('password123');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { showNotification } = useNotification();

@@ -374,7 +374,18 @@ export default function DashboardPage() {
         </>
       )}
 
-      {activeTab === 'charts' && (
+      {activeTab === 'charts' && transactions.length === 0 && !isLoading && (
+        <div className="card">
+          <div className="card-body p-5 text-center text-secondary">
+            <p className="mb-3">No transactions to visualize.</p>
+            <button className="btn btn-primary" onClick={openAdd}>
+              Add first transaction
+            </button>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'charts' && transactions.length > 0 && (
         <div className="row row-cards">
           {/* Pie: expense distribution */}
           <div className="col-lg-6">

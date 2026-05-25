@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useNotification } from '../context/NotificationContext';
+import { useTheme } from '../context/ThemeContext';
 import {
   IconLayoutDashboard,
   IconTag,
   IconLogout,
   IconMenu2,
+  IconSun,
+  IconMoon,
 } from '@tabler/icons-react';
 
 const NAV_ITEMS = [
@@ -30,6 +33,7 @@ export default function AppLayout({ children }) {
   const { showNotification } = useNotification();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const user = getUser();
+  const { theme, toggle } = useTheme();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -92,13 +96,22 @@ export default function AppLayout({ children }) {
                     {user?.email ?? ''}
                   </div>
                 </div>
-                <button
-                  className="btn btn-ghost-danger btn-icon ms-2 flex-shrink-0"
-                  onClick={handleLogout}
-                  title="Logout"
-                >
-                  <IconLogout size={18} />
-                </button>
+                <div className="d-flex gap-1 ms-2 flex-shrink-0">
+                  <button
+                    className="btn btn-ghost-secondary btn-icon"
+                    onClick={toggle}
+                    title={theme === 'light' ? 'Switch to dark' : 'Switch to light'}
+                  >
+                    {theme === 'light' ? <IconMoon size={18} /> : <IconSun size={18} />}
+                  </button>
+                  <button
+                    className="btn btn-ghost-danger btn-icon"
+                    onClick={handleLogout}
+                    title="Logout"
+                  >
+                    <IconLogout size={18} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
