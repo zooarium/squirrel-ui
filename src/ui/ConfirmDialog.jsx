@@ -1,7 +1,15 @@
 import React from 'react';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
+import Button from './Button';
 
-export default function ConfirmDialog({ isOpen, message, onConfirm, onCancel }) {
+export default function ConfirmDialog({
+  isOpen,
+  message,
+  onConfirm,
+  onCancel,
+  confirmLabel = 'Delete',
+  confirmVariant = 'danger',
+}) {
   return (
     <AlertDialog.Root open={isOpen} onOpenChange={(open) => !open && onCancel()}>
       <AlertDialog.Portal>
@@ -19,14 +27,14 @@ export default function ConfirmDialog({ isOpen, message, onConfirm, onCancel }) 
               </div>
               <div className="modal-footer">
                 <AlertDialog.Cancel asChild>
-                  <button className="btn btn-secondary" onClick={onCancel}>
+                  <Button variant="secondary" onClick={onCancel}>
                     Cancel
-                  </button>
+                  </Button>
                 </AlertDialog.Cancel>
                 <AlertDialog.Action asChild>
-                  <button className="btn btn-danger" onClick={onConfirm}>
-                    Delete
-                  </button>
+                  <Button variant={confirmVariant} onClick={onConfirm}>
+                    {confirmLabel}
+                  </Button>
                 </AlertDialog.Action>
               </div>
             </AlertDialog.Content>

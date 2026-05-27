@@ -1,4 +1,4 @@
-import { apiRequest } from './client';
+import { apiRequest } from '../infra/http/client';
 
 export function fetchTransactions(filters = {}) {
   const params = new URLSearchParams();

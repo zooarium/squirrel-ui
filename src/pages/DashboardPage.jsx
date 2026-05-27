@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 import {
   PieChart,
   Pie,
@@ -14,13 +13,28 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import AppLayout from '../components/AppLayout';
-import Modal from '../components/Modal';
-import ConfirmDialog from '../components/ConfirmDialog';
+import {
+  Button,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardBody,
+  Badge,
+  Spinner,
+  FormField,
+  Input,
+  Select,
+  Modal,
+  ConfirmDialog,
+  IconPlus,
+  IconEdit,
+  IconTrash,
+  CHART_COLORS,
+  TRANSACTION_COLORS,
+} from '../ui';
 import { useTransactions, EMPTY_TRANSACTION } from '../hooks/useTransactions';
 import { useCategories } from '../hooks/useCategories';
 import { useNotification } from '../context/NotificationContext';
-
-const CHART_COLORS = ['#206bc4', '#4299e1', '#74b9ff', '#0ca678', '#2fb344', '#f76707', '#e67700'];
 
 const formatINR = (amount) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
@@ -95,9 +109,7 @@ export default function DashboardPage() {
     setFormData({
       ...transaction,
       category_id: transaction.category_id ?? '',
-      dated: transaction.dated
-        ? transaction.dated.split('T')[0]
-        : EMPTY_TRANSACTION.dated,
+      dated: transaction.dated ? transaction.dated.split('T')[0] : EMPTY_TRANSACTION.dated,
       recurring: transaction.recurring ?? 0,
     });
     setFormErrors({});
@@ -182,13 +194,10 @@ export default function DashboardPage() {
             <h2 className="page-title">Transactions</h2>
           </div>
           <div className="col-auto ms-auto">
-            <button
-              className="btn btn-primary d-flex align-items-center gap-2"
-              onClick={openAdd}
-            >
+            <Button onClick={openAdd} className="d-flex align-items-center gap-2">
               <IconPlus size={16} />
               New Transaction
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -216,14 +225,13 @@ export default function DashboardPage() {
       {activeTab === 'list' && (
         <>
           {/* Filters */}
-          <div className="card mb-3">
-            <div className="card-body">
+          <Card className="mb-3">
+            <CardBody>
               <div className="row g-3 align-items-end">
                 <div className="col-md-3 col-sm-6">
                   <label className="form-label">Category</label>
-                  <select
+                  <Select
                     name="category_id"
-                    className="form-select"
                     value={filters.category_id}
                     onChange={handleFilterChange}
                   >
@@ -233,13 +241,12 @@ export default function DashboardPage() {
                         {cat.name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
                 <div className="col-md-3 col-sm-6">
                   <label className="form-label">Date Range</label>
-                  <select
+                  <Select
                     name="dated"
-                    className="form-select"
                     value={filters.dated}
                     onChange={handleFilterChange}
                   >
@@ -251,26 +258,24 @@ export default function DashboardPage() {
                     <option value="this year">This Year</option>
                     <option value="last year">Last Year</option>
                     <option value="custom">Custom Range</option>
-                  </select>
+                  </Select>
                 </div>
                 {filters.dated === 'custom' && (
                   <>
                     <div className="col-md-2 col-sm-6">
                       <label className="form-label">From</label>
-                      <input
+                      <Input
                         type="date"
                         name="from"
-                        className="form-control"
                         value={filters.from}
                         onChange={handleFilterChange}
                       />
                     </div>
                     <div className="col-md-2 col-sm-6">
                       <label className="form-label">To</label>
-                      <input
+                      <Input
                         type="date"
                         name="to"
-                        className="form-control"
                         value={filters.to}
                         onChange={handleFilterChange}
                       />
@@ -294,31 +299,25 @@ export default function DashboardPage() {
                   </label>
                 </div>
               </div>
-            </div>
-          </div>
+            </CardBody>
+          </Card>
 
           {/* Transactions table */}
-          <div className="card">
-            <div className="card-body p-0">
+          <Card>
+            <CardBody noPadding>
               {isLoading ? (
-                <div className="d-flex justify-content-center align-items-center p-5">
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading…</span>
-                  </div>
-                </div>
+                <Spinner centered />
               ) : error ? (
                 <div className="p-4 text-center">
                   <p className="text-danger mb-3">{error}</p>
-                  <button className="btn btn-outline-danger" onClick={refetch}>
+                  <Button variant="outline-danger" onClick={refetch}>
                     Retry
-                  </button>
+                  </Button>
                 </div>
               ) : transactions.length === 0 ? (
                 <div className="p-5 text-center text-secondary">
                   <p className="mb-3">No transactions found.</p>
-                  <button className="btn btn-primary" onClick={openAdd}>
-                    Add first transaction
-                  </button>
+                  <Button onClick={openAdd}>Add first transaction</Button>
                 </div>
               ) : (
                 <table className="table table-vcenter table-hover card-table">
@@ -337,31 +336,33 @@ export default function DashboardPage() {
                         <td className="fw-medium">{getCategoryName(t.category_id)}</td>
                         <td>{formatINR(t.amount)}</td>
                         <td>
-                          <span
-                            className={`badge ${t.type === 'income' ? 'bg-success-lt' : 'bg-danger-lt'}`}
-                          >
+                          <Badge color={t.type === 'income' ? 'success' : 'danger'}>
                             {t.type}
-                          </span>
+                          </Badge>
                         </td>
                         <td className="text-secondary">
                           {new Date(t.dated).toLocaleDateString('en-GB')}
                         </td>
                         <td>
                           <div className="d-flex gap-2 justify-content-end">
-                            <button
-                              className="btn btn-sm btn-ghost-primary btn-icon"
+                            <Button
+                              variant="ghost-primary"
+                              size="sm"
+                              icon
                               onClick={() => openEdit(t)}
                               title="Edit"
                             >
                               <IconEdit size={16} />
-                            </button>
-                            <button
-                              className="btn btn-sm btn-ghost-danger btn-icon"
+                            </Button>
+                            <Button
+                              variant="ghost-danger"
+                              size="sm"
+                              icon
                               onClick={() => handleDeleteRequest(t)}
                               title="Delete"
                             >
                               <IconTrash size={16} />
-                            </button>
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -369,31 +370,29 @@ export default function DashboardPage() {
                   </tbody>
                 </table>
               )}
-            </div>
-          </div>
+            </CardBody>
+          </Card>
         </>
       )}
 
       {activeTab === 'charts' && transactions.length === 0 && !isLoading && (
-        <div className="card">
-          <div className="card-body p-5 text-center text-secondary">
+        <Card>
+          <CardBody className="p-5 text-center text-secondary">
             <p className="mb-3">No transactions to visualize.</p>
-            <button className="btn btn-primary" onClick={openAdd}>
-              Add first transaction
-            </button>
-          </div>
-        </div>
+            <Button onClick={openAdd}>Add first transaction</Button>
+          </CardBody>
+        </Card>
       )}
 
       {activeTab === 'charts' && transactions.length > 0 && (
         <div className="row row-cards">
           {/* Pie: expense distribution */}
           <div className="col-lg-6">
-            <div className="card">
-              <div className="card-header">
-                <h3 className="card-title">Expense Distribution by Category</h3>
-              </div>
-              <div className="card-body">
+            <Card>
+              <CardHeader>
+                <CardTitle>Expense Distribution by Category</CardTitle>
+              </CardHeader>
+              <CardBody>
                 <ResponsiveContainer width="100%" height={280}>
                   <PieChart>
                     <Pie
@@ -412,17 +411,17 @@ export default function DashboardPage() {
                     <Tooltip formatter={(v) => formatINR(v)} />
                   </PieChart>
                 </ResponsiveContainer>
-              </div>
-            </div>
+              </CardBody>
+            </Card>
           </div>
 
           {/* Bar: top categories */}
           <div className="col-lg-6">
-            <div className="card">
-              <div className="card-header">
-                <h3 className="card-title">Top Categories by Spending</h3>
-              </div>
-              <div className="card-body">
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Categories by Spending</CardTitle>
+              </CardHeader>
+              <CardBody>
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart data={barData1} layout="vertical" margin={{ left: 10, right: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} />
@@ -441,17 +440,17 @@ export default function DashboardPage() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
-            </div>
+              </CardBody>
+            </Card>
           </div>
 
           {/* Bar: top transactions */}
           <div className="col-12">
-            <div className="card">
-              <div className="card-header">
-                <h3 className="card-title">Top Transactions by Amount</h3>
-              </div>
-              <div className="card-body">
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Transactions by Amount</CardTitle>
+              </CardHeader>
+              <CardBody>
                 <ResponsiveContainer width="100%" height={400}>
                   <BarChart data={barData2}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -470,14 +469,14 @@ export default function DashboardPage() {
                       {barData2.map((entry, i) => (
                         <Cell
                           key={i}
-                          fill={entry.type === 'income' ? '#2fb344' : '#d63939'}
+                          fill={entry.type === 'income' ? TRANSACTION_COLORS.income : TRANSACTION_COLORS.expense}
                         />
                       ))}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
-            </div>
+              </CardBody>
+            </Card>
           </div>
         </div>
       )}
@@ -489,14 +488,11 @@ export default function DashboardPage() {
         title={isEditMode ? 'Edit Transaction' : 'Add Transaction'}
       >
         <form onSubmit={handleSave} noValidate>
-          <div className="mb-3">
-            <label className="form-label" htmlFor="category_id">
-              Category
-            </label>
-            <select
+          <FormField label="Category" htmlFor="category_id" error={formErrors.category_id}>
+            <Select
               id="category_id"
               ref={firstInputRef}
-              className={`form-select ${formErrors.category_id ? 'is-invalid' : ''}`}
+              error={formErrors.category_id}
               value={formData.category_id}
               onChange={handleFormChange}
             >
@@ -506,53 +502,34 @@ export default function DashboardPage() {
                   {cat.name}
                 </option>
               ))}
-            </select>
-            {formErrors.category_id && (
-              <div className="invalid-feedback">{formErrors.category_id}</div>
-            )}
-          </div>
-          <div className="mb-3">
-            <label className="form-label" htmlFor="amount">
-              Amount
-            </label>
-            <input
+            </Select>
+          </FormField>
+          <FormField label="Amount" htmlFor="amount" error={formErrors.amount}>
+            <Input
               id="amount"
               type="number"
               min="0"
               step="0.01"
-              className={`form-control ${formErrors.amount ? 'is-invalid' : ''}`}
+              error={formErrors.amount}
               value={formData.amount}
               onChange={handleFormChange}
             />
-            {formErrors.amount && <div className="invalid-feedback">{formErrors.amount}</div>}
-          </div>
-          <div className="mb-3">
-            <label className="form-label" htmlFor="dated">
-              Date
-            </label>
-            <input
+          </FormField>
+          <FormField label="Date" htmlFor="dated" error={formErrors.dated}>
+            <Input
               id="dated"
               type="date"
-              className={`form-control ${formErrors.dated ? 'is-invalid' : ''}`}
+              error={formErrors.dated}
               value={formData.dated}
               onChange={handleFormChange}
             />
-            {formErrors.dated && <div className="invalid-feedback">{formErrors.dated}</div>}
-          </div>
-          <div className="mb-3">
-            <label className="form-label" htmlFor="type">
-              Type
-            </label>
-            <select
-              id="type"
-              className="form-select"
-              value={formData.type}
-              onChange={handleFormChange}
-            >
+          </FormField>
+          <FormField label="Type" htmlFor="type">
+            <Select id="type" value={formData.type} onChange={handleFormChange}>
               <option value="expense">Expense</option>
               <option value="income">Income</option>
-            </select>
-          </div>
+            </Select>
+          </FormField>
           <div className="mb-4">
             <label className="form-check">
               <input
@@ -566,12 +543,10 @@ export default function DashboardPage() {
             </label>
           </div>
           <div className="d-flex justify-content-end gap-2">
-            <button type="button" className="btn btn-secondary" onClick={closeModal}>
+            <Button variant="secondary" type="button" onClick={closeModal}>
               Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              {isEditMode ? 'Update' : 'Save'}
-            </button>
+            </Button>
+            <Button type="submit">{isEditMode ? 'Update' : 'Save'}</Button>
           </div>
         </form>
       </Modal>

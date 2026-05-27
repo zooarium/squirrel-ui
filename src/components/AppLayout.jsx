@@ -2,42 +2,24 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useNotification } from '../context/NotificationContext';
 import { useTheme } from '../context/ThemeContext';
-import {
-  IconLayoutDashboard,
-  IconTag,
-  IconLogout,
-  IconMenu2,
-  IconSun,
-  IconMoon,
-} from '@tabler/icons-react';
+import { storage } from '../infra/auth/storage';
+import { Button, IconLayoutDashboard, IconTag, IconLogout, IconMenu2, IconSun, IconMoon } from '../ui';
 
 const NAV_ITEMS = [
   { path: '/dashboard', label: 'Transactions', Icon: IconLayoutDashboard },
   { path: '/categories', label: 'Categories', Icon: IconTag },
 ];
 
-function getUser() {
-  try {
-    const stored = localStorage.getItem('user');
-    if (!stored) return null;
-    const parsed = JSON.parse(stored);
-    return parsed && typeof parsed === 'object' ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
 export default function AppLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { showNotification } = useNotification();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const user = getUser();
+  const user = storage.getUser();
   const { theme, toggle } = useTheme();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    storage.clear();
     showNotification('Logged out successfully.', 'success');
     navigate('/login');
   };
@@ -97,20 +79,22 @@ export default function AppLayout({ children }) {
                   </div>
                 </div>
                 <div className="d-flex gap-1 ms-2 flex-shrink-0">
-                  <button
-                    className="btn btn-ghost-secondary btn-icon"
+                  <Button
+                    variant="ghost-secondary"
+                    icon
                     onClick={toggle}
                     title={theme === 'light' ? 'Switch to dark' : 'Switch to light'}
                   >
                     {theme === 'light' ? <IconMoon size={18} /> : <IconSun size={18} />}
-                  </button>
-                  <button
-                    className="btn btn-ghost-danger btn-icon"
+                  </Button>
+                  <Button
+                    variant="ghost-danger"
+                    icon
                     onClick={handleLogout}
                     title="Logout"
                   >
                     <IconLogout size={18} />
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

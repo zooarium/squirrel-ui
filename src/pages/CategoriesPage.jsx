@@ -1,8 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { IconPlus, IconEdit, IconTrash, IconSearch, IconX } from '@tabler/icons-react';
 import AppLayout from '../components/AppLayout';
-import Modal from '../components/Modal';
-import ConfirmDialog from '../components/ConfirmDialog';
+import {
+  Button,
+  Card,
+  CardBody,
+  Badge,
+  Spinner,
+  FormField,
+  Input,
+  Modal,
+  ConfirmDialog,
+  IconPlus,
+  IconEdit,
+  IconTrash,
+  IconSearch,
+  IconX,
+} from '../ui';
 import { useCategories } from '../hooks/useCategories';
 import { useNotification } from '../context/NotificationContext';
 
@@ -107,71 +120,61 @@ export default function CategoriesPage() {
             <h2 className="page-title">Categories</h2>
           </div>
           <div className="col-auto ms-auto">
-            <button
-              className="btn btn-primary d-flex align-items-center gap-2"
-              onClick={openAdd}
-            >
+            <Button onClick={openAdd} className="d-flex align-items-center gap-2">
               <IconPlus size={16} />
               New Category
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Search filter */}
-      <div className="card mb-3">
-        <div className="card-body">
+      <Card className="mb-3">
+        <CardBody>
           <div className="row">
             <div className="col-md-4">
               <div className="input-group">
                 <span className="input-group-text">
                   <IconSearch size={16} />
                 </span>
-                <input
+                <Input
                   type="text"
-                  className="form-control"
                   placeholder="Search by name…"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
                 {searchTerm && (
-                  <button
-                    className="btn btn-outline-secondary"
+                  <Button
+                    variant="outline-secondary"
                     type="button"
                     onClick={() => setSearchTerm('')}
                     aria-label="Clear search"
                   >
                     <IconX size={16} />
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </CardBody>
+      </Card>
 
       {/* Table card */}
-      <div className="card">
-        <div className="card-body p-0">
+      <Card>
+        <CardBody noPadding>
           {isLoading ? (
-            <div className="d-flex justify-content-center align-items-center p-5">
-              <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">Loading…</span>
-              </div>
-            </div>
+            <Spinner centered />
           ) : error ? (
             <div className="p-4 text-center">
               <p className="text-danger mb-3">{error}</p>
-              <button className="btn btn-outline-danger" onClick={refetch}>
+              <Button variant="outline-danger" onClick={refetch}>
                 Retry
-              </button>
+              </Button>
             </div>
           ) : categories.length === 0 ? (
             <div className="p-5 text-center text-secondary">
               <p className="mb-3">No categories found.</p>
-              <button className="btn btn-primary" onClick={openAdd}>
-                Add first category
-              </button>
+              <Button onClick={openAdd}>Add first category</Button>
             </div>
           ) : (
             <table className="table table-vcenter table-hover card-table">
@@ -189,28 +192,30 @@ export default function CategoriesPage() {
                     <td className="text-secondary">{cat.id}</td>
                     <td className="fw-medium">{cat.name}</td>
                     <td>
-                      <span
-                        className={`badge ${cat.status === 1 ? 'bg-success-lt' : 'bg-secondary-lt'}`}
-                      >
+                      <Badge color={cat.status === 1 ? 'success' : 'secondary'}>
                         {cat.status === 1 ? 'Active' : 'Inactive'}
-                      </span>
+                      </Badge>
                     </td>
                     <td>
                       <div className="d-flex gap-2 justify-content-end">
-                        <button
-                          className="btn btn-sm btn-ghost-primary btn-icon"
+                        <Button
+                          variant="ghost-primary"
+                          size="sm"
+                          icon
                           onClick={() => openEdit(cat)}
                           title="Edit"
                         >
                           <IconEdit size={16} />
-                        </button>
-                        <button
-                          className="btn btn-sm btn-ghost-danger btn-icon"
+                        </Button>
+                        <Button
+                          variant="ghost-danger"
+                          size="sm"
+                          icon
                           onClick={() => handleDeleteRequest(cat)}
                           title="Delete"
                         >
                           <IconTrash size={16} />
-                        </button>
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -218,21 +223,18 @@ export default function CategoriesPage() {
               </tbody>
             </table>
           )}
-        </div>
-      </div>
+        </CardBody>
+      </Card>
 
       {/* Add modal */}
       <Modal isOpen={isAddOpen} onClose={() => setAddOpen(false)} title="Add Category" size="sm">
         <form onSubmit={handleAdd} noValidate>
-          <div className="mb-3">
-            <label className="form-label" htmlFor="addCategoryName">
-              Category Name
-            </label>
-            <input
+          <FormField label="Category Name" htmlFor="addCategoryName" error={formError}>
+            <Input
               id="addCategoryName"
               ref={addInputRef}
               type="text"
-              className={`form-control ${formError ? 'is-invalid' : ''}`}
+              error={formError}
               value={formName}
               onChange={(e) => {
                 setFormName(e.target.value);
@@ -240,15 +242,12 @@ export default function CategoriesPage() {
               }}
               placeholder="e.g. Electronics"
             />
-            {formError && <div className="invalid-feedback">{formError}</div>}
-          </div>
+          </FormField>
           <div className="d-flex justify-content-end gap-2">
-            <button type="button" className="btn btn-secondary" onClick={() => setAddOpen(false)}>
+            <Button variant="secondary" type="button" onClick={() => setAddOpen(false)}>
               Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              Save
-            </button>
+            </Button>
+            <Button type="submit">Save</Button>
           </div>
         </form>
       </Modal>
@@ -261,30 +260,24 @@ export default function CategoriesPage() {
         size="sm"
       >
         <form onSubmit={handleEdit} noValidate>
-          <div className="mb-3">
-            <label className="form-label" htmlFor="editCategoryName">
-              Category Name
-            </label>
-            <input
+          <FormField label="Category Name" htmlFor="editCategoryName" error={formError}>
+            <Input
               id="editCategoryName"
               ref={editInputRef}
               type="text"
-              className={`form-control ${formError ? 'is-invalid' : ''}`}
+              error={formError}
               value={formName}
               onChange={(e) => {
                 setFormName(e.target.value);
                 setFormError('');
               }}
             />
-            {formError && <div className="invalid-feedback">{formError}</div>}
-          </div>
+          </FormField>
           <div className="d-flex justify-content-end gap-2">
-            <button type="button" className="btn btn-secondary" onClick={() => setEditOpen(false)}>
+            <Button variant="secondary" type="button" onClick={() => setEditOpen(false)}>
               Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              Update
-            </button>
+            </Button>
+            <Button type="submit">Update</Button>
           </div>
         </form>
       </Modal>

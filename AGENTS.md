@@ -4,50 +4,95 @@ This document provides context and guidelines for AI agents working on the Squir
 
 ## 🎯 Project Overview
 
-Squirrel-UI is a React-based Expense Tracker application with a distinct "Matrix" theme. It allows users to manage transactions (income/expense), categorize them, and view financial summaries. The project prioritizes a high-contrast, hacker-aesthetic UI.
+Squirrel-UI is a React-based **Personal Expense Tracker**. Users manage transactions (income/expense), categorize them, and view financial summaries via charts. Currency is **INR** (`en-IN` locale).
 
-## 🎨 Design Guidelines
+## 🛠️ Tech Stack
 
-- **Theme**: "The Matrix" (Cyberpunk/Hacker aesthetic).
-- **Color Palette**:
-  - **Background**: Black (`bg-black`).
-  - **Text**: Bright Green (`text-green-400`, `#4ade80`).
-  - **Accents**: Darker Green (`border-green-600`, `bg-green-900/20`).
-  - **Errors**: Red (`text-red-500`, `border-red-500`).
-- **Typography**: Monospace font (`font-mono`) for all text.
-- **Components**:
-  - **Checkboxes**: MUST use the custom `.matrix-checkbox` class for a consistent green border/checkmark style. Do NOT use default browser checkboxes.
-  - **Inputs/Selects**: Black background, Green text, Green border. Focus states should have a green glow/shadow.
-  - **Date Inputs**: Use `[&::-webkit-calendar-picker-indicator]:invert` to ensure the calendar icon is visible against the black background.
-  - **Modals**: Black background with opacity (`bg-black/80`), blurred backdrop (`backdrop-blur-sm`), and green borders.
-  - **Effects**: Use `text-shadow-glow` for headings and `MatrixRain` component for background ambiance.
+| Layer | Library |
+|-------|---------|
+| UI framework | React 19 (functional components + hooks) |
+| CSS | **Tabler CSS 1.2** (Bootstrap-based — use Bootstrap utility classes) |
+| Icons | `@tabler/icons-react` |
+| Dialogs | `@radix-ui/react-dialog`, `@radix-ui/react-alert-dialog` |
+| Charts | Recharts |
+| Routing | React Router DOM v7 |
+| Build | Vite 7 |
+| Testing | Vitest + Testing Library |
 
-## 🛠️ Tech Stack & Conventions
+> **No Tailwind.** Use Tabler/Bootstrap utility classes (`d-flex`, `gap-2`, `text-secondary`, `min-vh-100`, etc.).
 
-- **React 19**: Uses functional components and hooks.
-- **Tailwind CSS 4**: Modern styling approach. Look at `package.json` and `vite.config.js` for setup.
-- **Vite**: Fast development and build tool.
+## 📁 Source Structure
 
-## 📁 Key Components
+```
+src/
+  api/           auth.js · categories.js · transactions.js
+  components/    AppLayout.jsx · Notification.jsx
+  context/       NotificationContext.jsx · ThemeContext.jsx
+  hooks/         useCategories.js · useTransactions.js
+  infra/
+    auth/        guards.jsx · storage.js
+    http/        client.js · errors.js
+    router/      index.jsx
+    config.js
+  pages/         LoginPage.jsx · DashboardPage.jsx · CategoriesPage.jsx
+  ui/            barrel — import everything from here (see below)
+```
 
-- `MasonryGrid.jsx`: The heart of the landing page. Handles data fetching (mocked), infinite scroll logic, and layout columns.
-- `PostCard.jsx`: Individual post item. Note: Post titles are currently hidden by design.
-- `PostModal.jsx`: Full-screen view of a post details.
-- `Header.jsx`: Contains navigation, category filtering, and the More Menu.
+## 🧩 UI Barrel (`src/ui/`)
 
-## 🖼️ Mock Data & Images
+**Always import from `../ui`, never from individual files.**
 
-- The project currently uses mock data generated in `MasonryGrid.jsx`.
-- Mock images are stored in `public/images/mock/[Category]/`.
-- When adding categories, ensure local images exist or provide a fallback URL pattern.
+```js
+import {
+  Button, Card, CardHeader, CardTitle, CardBody,
+  Badge, Spinner, FormField, Input, Select,
+  Alert, Modal, ConfirmDialog,
+  IconPlus, IconEdit, IconTrash, /* …other Tabler icons */
+  CHART_COLORS, TRANSACTION_COLORS,
+} from '../ui';
+```
+
+Swapping the underlying library only requires changes inside `src/ui/` — zero app-code changes.
+
+## 🗺️ Routes
+
+| Path | Page | Guard |
+|------|------|-------|
+| `/login` | `LoginPage` | public |
+| `/dashboard` | `DashboardPage` | `PrivateRoute` |
+| `/categories` | `CategoriesPage` | `PrivateRoute` |
+| `/` | redirect → `/dashboard` or `/login` | — |
+
+## 🌐 HTTP Layer
+
+`src/infra/http/client.js` — thin `fetch` wrapper.
+- `apiRequest(path, opts)` — authenticated API calls (attaches Bearer token).
+- `authRequest(path, opts)` — auth-service calls (login).
+- Auto-redirects to `/login` on 401.
+- To swap `fetch` → `axios`: edit `client.js` only.
+
+## 🎨 Theme
+
+Light/dark toggle via `ThemeContext`. `data-bs-theme` attribute on `<html>` drives Tabler's theme. Standard Tabler defaults — no custom Matrix/cyberpunk styling.
 
 ## 📝 Coding Standards
 
-- **Naming**: Use PascalCase for components and camelCase for variables/functions.
-- **Formatting**: Adhere to Prettier and ESLint rules. Run `npm run format` and `npm run lint`.
-- **Modals**: Handle body overflow (`hidden`/`auto`) when opening/closing modals to prevent background scrolling.
+- **Naming**: PascalCase for components, camelCase for variables/functions.
+- **Formatting**: `npm run format` (Prettier) and `npm run lint` (ESLint) before committing.
+- **Modals**: toggle `document.body.style.overflow` (`hidden`/`auto`) when opening/closing if background scroll bleeds through.
+- **Forms**: client-side validation before API call; show field-level errors via `FormField error={…}` prop.
+- **Notifications**: use `useNotification()` → `showNotification(message, 'success'|'error')`.
 
 ## 🚀 Common Tasks
 
-- **Adding a Category**: Update `MOCK_CATEGORIES` in `MasonryGrid.jsx` and add titles to `CATEGORY_TITLES`.
-- **New Page**: Create component in `src/pages/`, add route in `App.jsx`, and link in `Header.jsx` or `Footer.jsx`.
+### Add a new page
+1. Create `src/pages/NewPage.jsx`, wrap with `<AppLayout>`.
+2. Lazy-import in `src/infra/router/index.jsx`.
+3. Add `<Route>` (wrap in `<PrivateRoute>` if auth-required).
+4. Add nav link in `AppLayout.jsx` `NAV_ITEMS` array.
+
+### Add a new API module
+Create `src/api/thing.js` using `apiRequest` from `src/infra/http/client.js`. Mirror the pattern in `categories.js` or `transactions.js`.
+
+### Add a new UI primitive
+Add file inside `src/ui/`, export from `src/ui/index.js`. Never import UI primitives directly from their file path outside `src/ui/`.
