@@ -27,6 +27,17 @@ export default defineConfig(({ mode }) => ({
     // Without this, React resolves from ../aviary-ui/node_modules/react → hooks crash.
     dedupe: ['react', 'react-dom'],
   },
+  server: {
+    watch: {
+      // Watch @aviary-ui dist/ so HMR fires when `make dev-ui` rebuilds the packages.
+      // Vite ignores node_modules by default; this carves out @aviary-ui as an exception.
+      ignored: (path) => path.includes('node_modules') && !path.includes('@aviary-ui'),
+    },
+  },
+  optimizeDeps: {
+    // Don't pre-bundle aviary-ui packages — load dist/ fresh on each rebuild during dev.
+    exclude: ['@aviary-ui/core', '@aviary-ui/ui'],
+  },
   test: {
     globals: true,
     environment: 'jsdom',
