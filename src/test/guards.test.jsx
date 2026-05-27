@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { RequireRole, RequirePermission } from '../infra/auth/guards';
-import { storage } from '../infra/auth/storage';
+import { RequireRole, RequirePermission } from '@aviary-ui/ui';
+import { storage } from '@aviary-ui/core';
 
 afterEach(() => storage.clear());
 

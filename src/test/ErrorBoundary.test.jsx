@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import ErrorBoundary from '../components/ErrorBoundary';
+import { ErrorBoundary } from '@aviary-ui/ui';
 
 // Silence expected React error logs
 beforeEach(() => vi.spyOn(console, 'error').mockImplementation(() => {}));

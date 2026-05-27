@@ -1,9 +1,7 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { NotificationProvider } from './context/NotificationContext';
-import { ThemeProvider } from './context/ThemeContext';
+import { ErrorBoundary, ThemeProvider, NotificationProvider } from '@aviary-ui/ui';
 import AppRouter from './infra/router';
-import ErrorBoundary from './components/ErrorBoundary';
 
 const queryClient = new QueryClient({
   defaultOptions: {

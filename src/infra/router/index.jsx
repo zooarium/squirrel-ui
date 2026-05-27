@@ -1,8 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { PrivateRoute } from '@/infra/auth/guards';
-import { storage } from '@/infra/auth/storage';
-import { Spinner } from '@/ui';
+import { PrivateRoute, Spinner } from '@aviary-ui/ui';
+import { storage } from '@aviary-ui/core';
 
 const LoginPage = lazy(() => import('../../pages/LoginPage'));
 const DashboardPage = lazy(() => import('../../pages/DashboardPage'));

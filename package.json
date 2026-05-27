@@ -18,6 +18,8 @@
     "analyze": "vite build --mode analyze"
   },
   "dependencies": {
+    "@aviary-ui/core": "file:../aviary-ui/packages/core",
+    "@aviary-ui/ui": "file:../aviary-ui/packages/ui",
     "@hookform/resolvers": "^5.4.0",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-dialog": "^1.1.14",

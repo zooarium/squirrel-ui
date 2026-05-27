@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import AppLayout from '@/components/AppLayout';
 import {
+  AppLayout,
   Button,
   Card,
   CardBody,
@@ -15,9 +15,10 @@ import {
   IconTrash,
   IconSearch,
   IconX,
-} from '@/ui';
+  useNotification,
+} from '@aviary-ui/ui';
 import { useCategories } from '@/hooks/useCategories';
-import { useNotification } from '@/context/NotificationContext';
+import { NAV_ITEMS } from '@/config/nav';
 
 export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -112,7 +113,7 @@ export default function CategoriesPage() {
   };
 
   return (
-    <AppLayout>
+    <AppLayout navItems={NAV_ITEMS} appName="Squirrel">
       {/* Page header */}
       <div className="page-header d-print-none mb-3">
         <div className="row align-items-center">

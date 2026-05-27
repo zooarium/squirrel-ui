@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchCategories, createCategory, updateCategory, deleteCategory } from '@/api/categories';
-import { useNotification } from '@/context/NotificationContext';
+import { useNotification } from '@aviary-ui/ui';
 
 export const CATEGORIES_KEY = 'categories';
 

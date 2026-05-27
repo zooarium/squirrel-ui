@@ -23,6 +23,9 @@ export default defineConfig(({ mode }) => ({
       // Example: import { Button } from '@/ui';
       '@': resolve(__dirname, './src'),
     },
+    // Prevent duplicate React when @aviary-ui/* packages are symlinked via file: deps.
+    // Without this, React resolves from ../aviary-ui/node_modules/react → hooks crash.
+    dedupe: ['react', 'react-dom'],
   },
   test: {
     globals: true,

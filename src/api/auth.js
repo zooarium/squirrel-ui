@@ -1,4 +1,4 @@
-import { authRequest } from '@/infra/http/client';
+import { authRequest } from '@aviary-ui/core';
 
 export async function login(email, password) {
   const data = await authRequest('/users/auth', {

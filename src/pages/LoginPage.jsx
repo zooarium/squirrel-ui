@@ -3,10 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNotification } from '@/context/NotificationContext';
-import { storage } from '@/infra/auth/storage';
+import { useNotification, Button, Card, CardBody, FormField, Input } from '@aviary-ui/ui';
+import { storage } from '@aviary-ui/core';
 import { login } from '@/api/auth';
-import { Button, Card, CardBody, FormField, Input } from '@/ui';
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Enter a valid email address'),

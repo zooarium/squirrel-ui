@@ -5,7 +5,7 @@ import {
   updateTransaction,
   deleteTransaction,
 } from '@/api/transactions';
-import { useNotification } from '@/context/NotificationContext';
+import { useNotification } from '@aviary-ui/ui';
 
 export const TRANSACTIONS_KEY = 'transactions';
 

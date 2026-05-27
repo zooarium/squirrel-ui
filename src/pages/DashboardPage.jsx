@@ -12,8 +12,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import AppLayout from '@/components/AppLayout';
 import {
+  AppLayout,
   Button,
   Card,
   CardHeader,
@@ -31,10 +31,11 @@ import {
   IconTrash,
   CHART_COLORS,
   TRANSACTION_COLORS,
-} from '@/ui';
+  useNotification,
+} from '@aviary-ui/ui';
 import { useTransactions, EMPTY_TRANSACTION } from '@/hooks/useTransactions';
 import { useCategories } from '@/hooks/useCategories';
-import { useNotification } from '@/context/NotificationContext';
+import { NAV_ITEMS } from '@/config/nav';
 
 const formatINR = (amount) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
@@ -186,7 +187,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <AppLayout>
+    <AppLayout navItems={NAV_ITEMS} appName="Squirrel">
       {/* Page header */}
       <div className="page-header d-print-none mb-3">
         <div className="row align-items-center">
