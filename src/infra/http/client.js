@@ -65,7 +65,7 @@ async function retryWithToken(url, options, newToken) {
   return parseResponse(res);
 }
 
-async function request(baseUrl, path, options = {}) {
+async function request(baseUrl, path, options = {}, skipAuthRefresh = false) {
   const token = storage.getToken();
 
   const headers = {
@@ -78,7 +78,9 @@ async function request(baseUrl, path, options = {}) {
   const url = `${baseUrl}${path}`;
   const res = await fetch(url, { ...options, headers });
 
-  if (res.status !== 401) return parseResponse(res);
+  // Auth endpoints (login, register) must NOT trigger the refresh flow.
+  // A 401 from login just means bad credentials — let the error propagate normally.
+  if (res.status !== 401 || skipAuthRefresh) return parseResponse(res);
 
   // --- 401 handling: try silent refresh ---
   if (!isRefreshing) {
@@ -106,5 +108,5 @@ async function request(baseUrl, path, options = {}) {
   });
 }
 
-export const apiRequest = (path, options = {}) => request(config.apiBase, path, options);
-export const authRequest = (path, options = {}) => request(config.authBase, path, options);
+export const apiRequest = (path, options = {}) => request(config.apiBase, path, options, false);
+export const authRequest = (path, options = {}) => request(config.authBase, path, options, true);

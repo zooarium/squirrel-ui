@@ -56,6 +56,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="you@example.com"
                   autoComplete="email"
+                  error={errors.email?.message}
                   {...register('email')}
                 />
               </FormField>
@@ -65,6 +66,7 @@ export default function LoginPage() {
                   type="password"
                   placeholder="Your password"
                   autoComplete="current-password"
+                  error={errors.password?.message}
                   {...register('password')}
                 />
               </FormField>
