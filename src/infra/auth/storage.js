@@ -1,12 +1,17 @@
 // Single point for auth token / user storage.
 // Swap localStorage → cookie/sessionStorage: edit here only.
 const TOKEN_KEY = 'token';
+const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'user';
 
 export const storage = {
   getToken: () => localStorage.getItem(TOKEN_KEY),
   setToken: (token) => localStorage.setItem(TOKEN_KEY, token),
   removeToken: () => localStorage.removeItem(TOKEN_KEY),
+
+  getRefreshToken: () => localStorage.getItem(REFRESH_TOKEN_KEY),
+  setRefreshToken: (token) => localStorage.setItem(REFRESH_TOKEN_KEY, token),
+  removeRefreshToken: () => localStorage.removeItem(REFRESH_TOKEN_KEY),
 
   getUser: () => {
     try {
@@ -23,6 +28,7 @@ export const storage = {
 
   clear: () => {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
   },
 };

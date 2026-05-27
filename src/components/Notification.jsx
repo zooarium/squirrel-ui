@@ -1,11 +1,5 @@
 import React from 'react';
-import { Alert } from '../ui';
-import {
-  IconCheck,
-  IconAlertTriangle,
-  IconInfoCircle,
-  IconCircleX,
-} from '../ui/icons';
+import { Alert, IconCheck, IconAlertTriangle, IconInfoCircle, IconCircleX } from '@/ui';
 
 const CONFIG = {
   success: { Icon: IconCheck },

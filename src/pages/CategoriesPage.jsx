@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import AppLayout from '../components/AppLayout';
+import AppLayout from '@/components/AppLayout';
 import {
   Button,
   Card,
@@ -15,9 +15,9 @@ import {
   IconTrash,
   IconSearch,
   IconX,
-} from '../ui';
-import { useCategories } from '../hooks/useCategories';
-import { useNotification } from '../context/NotificationContext';
+} from '@/ui';
+import { useCategories } from '@/hooks/useCategories';
+import { useNotification } from '@/context/NotificationContext';
 
 export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState('');

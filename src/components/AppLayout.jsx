@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useNotification } from '../context/NotificationContext';
-import { useTheme } from '../context/ThemeContext';
-import { storage } from '../infra/auth/storage';
-import { Button, IconLayoutDashboard, IconTag, IconLogout, IconMenu2, IconSun, IconMoon } from '../ui';
+import { useNotification } from '@/context/NotificationContext';
+import { useTheme } from '@/context/ThemeContext';
+import { storage } from '@/infra/auth/storage';
+import { Button, IconLayoutDashboard, IconTag, IconLogout, IconMenu2, IconSun, IconMoon } from '@/ui';
 
 const NAV_ITEMS = [
   { path: '/dashboard', label: 'Transactions', Icon: IconLayoutDashboard },

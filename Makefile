@@ -14,7 +14,7 @@ ANDROID_DIR = android
 NVM_SH := /home/hiren/.local/bin/nvm.sh
 NVM_USE := . $(NVM_SH) && nvm use
 
-.PHONY: help install update dev build lint format test test-watch clean cap-sync cap-open-android android-build
+.PHONY: help install update dev build analyze lint format test test-watch clean cap-sync cap-open-android android-build
 
 # Default command: show help
 help:
@@ -23,6 +23,7 @@ help:
 	@echo "  make update              Update all NPM packages"
 	@echo "  make dev                 Start Vite development server"
 	@echo "  make build               Build the project for production"
+	@echo "  make analyze             Build + generate stats.html bundle treemap"
 	@echo "  make lint                Run ESLint"
 	@echo "  make format              Format code with Prettier"
 	@echo "  make test                Run tests once"
@@ -48,6 +49,13 @@ dev:
 # Production build
 build:
 	$(NVM_USE) && $(NPM) run build
+
+# Bundle analysis — builds prod + outputs stats.html treemap
+# Open stats.html in browser to see interactive chunk breakdown (gzip + brotli sizes)
+analyze:
+	$(NVM_USE) && $(NPM) run analyze
+	@echo ""
+	@echo "✓ Bundle report → stats.html (open in browser)"
 
 # Quality tools
 lint:

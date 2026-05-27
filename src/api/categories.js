@@ -1,4 +1,4 @@
-import { apiRequest } from '../infra/http/client';
+import { apiRequest } from '@/infra/http/client';
 
 export function fetchCategories(filters = {}) {
   const params = new URLSearchParams();

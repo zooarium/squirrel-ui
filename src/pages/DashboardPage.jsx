@@ -12,7 +12,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import AppLayout from '../components/AppLayout';
+import AppLayout from '@/components/AppLayout';
 import {
   Button,
   Card,
@@ -31,10 +31,10 @@ import {
   IconTrash,
   CHART_COLORS,
   TRANSACTION_COLORS,
-} from '../ui';
-import { useTransactions, EMPTY_TRANSACTION } from '../hooks/useTransactions';
-import { useCategories } from '../hooks/useCategories';
-import { useNotification } from '../context/NotificationContext';
+} from '@/ui';
+import { useTransactions, EMPTY_TRANSACTION } from '@/hooks/useTransactions';
+import { useCategories } from '@/hooks/useCategories';
+import { useNotification } from '@/context/NotificationContext';
 
 const formatINR = (amount) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);

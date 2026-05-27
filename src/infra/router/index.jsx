@@ -1,8 +1,8 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { PrivateRoute } from '../auth/guards';
-import { storage } from '../auth/storage';
-import { Spinner } from '../../ui';
+import { PrivateRoute } from '@/infra/auth/guards';
+import { storage } from '@/infra/auth/storage';
+import { Spinner } from '@/ui';
 
 const LoginPage = lazy(() => import('../../pages/LoginPage'));
 const DashboardPage = lazy(() => import('../../pages/DashboardPage'));

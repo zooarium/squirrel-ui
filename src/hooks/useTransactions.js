@@ -1,11 +1,13 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchTransactions,
   createTransaction,
   updateTransaction,
   deleteTransaction,
-} from '../api/transactions';
-import { useNotification } from '../context/NotificationContext';
+} from '@/api/transactions';
+import { useNotification } from '@/context/NotificationContext';
+
+export const TRANSACTIONS_KEY = 'transactions';
 
 export const EMPTY_TRANSACTION = {
   amount: '',
@@ -15,72 +17,67 @@ export const EMPTY_TRANSACTION = {
   recurring: 0,
 };
 
-export function useTransactions({ category_id = '', recurring = '', dated = '', from = '', to = '' } = {}) {
-  const [transactions, setTransactions] = useState([]);
-  const [stats, setStats] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+function toPayload(formData) {
+  return {
+    amount: parseFloat(formData.amount),
+    type: formData.type,
+    category_id: formData.category_id ? parseInt(formData.category_id, 10) : null,
+    dated: new Date(formData.dated).toISOString(),
+    recurring: parseInt(formData.recurring, 10),
+  };
+}
+
+export function useTransactions({
+  category_id = '',
+  recurring = '',
+  dated = '',
+  from = '',
+  to = '',
+} = {}) {
+  const queryClient = useQueryClient();
   const { showNotification } = useNotification();
 
-  const load = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await fetchTransactions({ category_id, recurring, dated, from, to });
-      setTransactions(data.data?.transactions ?? (Array.isArray(data.data) ? data.data : []));
-      setStats(data.data?.stats ?? {});
-    } catch (err) {
-      setError(err.message);
-      showNotification(err.message, 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [category_id, recurring, dated, from, to, showNotification]);
+  const filters = { category_id, recurring, dated, from, to };
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const { data, isLoading, error } = useQuery({
+    queryKey: [TRANSACTIONS_KEY, filters],
+    queryFn: () => fetchTransactions(filters),
+    select: (res) => ({
+      transactions: res.data?.transactions ?? (Array.isArray(res.data) ? res.data : []),
+      stats: res.data?.stats ?? {},
+    }),
+  });
 
-  const create = useCallback(
-    async (formData) => {
-      const payload = {
-        amount: parseFloat(formData.amount),
-        type: formData.type,
-        category_id: formData.category_id ? parseInt(formData.category_id, 10) : null,
-        dated: new Date(formData.dated).toISOString(),
-        recurring: parseInt(formData.recurring, 10),
-      };
-      await createTransaction(payload);
-      showNotification('Transaction created successfully!', 'success');
-      await load();
-    },
-    [load, showNotification]
-  );
+  const transactions = data?.transactions ?? [];
+  const stats = data?.stats ?? {};
 
-  const update = useCallback(
-    async (id, formData) => {
-      const payload = {
-        amount: parseFloat(formData.amount),
-        type: formData.type,
-        category_id: formData.category_id ? parseInt(formData.category_id, 10) : null,
-        dated: new Date(formData.dated).toISOString(),
-        recurring: parseInt(formData.recurring, 10),
-      };
-      await updateTransaction(id, payload);
-      showNotification('Transaction updated successfully!', 'success');
-      await load();
-    },
-    [load, showNotification]
-  );
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: [TRANSACTIONS_KEY] });
 
-  const remove = useCallback(
-    async (id) => {
-      await deleteTransaction(id);
-      setTransactions((prev) => prev.filter((t) => t.id !== id));
-      showNotification('Transaction deleted successfully!', 'success');
-    },
-    [showNotification]
-  );
+  const createMutation = useMutation({
+    mutationFn: (formData) => createTransaction(toPayload(formData)),
+    onSuccess: () => { invalidate(); showNotification('Transaction created successfully!', 'success'); },
+    onError: (err) => showNotification(err.message, 'error'),
+  });
 
-  return { transactions, stats, isLoading, error, create, update, remove, refetch: load };
+  const updateMutation = useMutation({
+    mutationFn: ({ id, formData }) => updateTransaction(id, toPayload(formData)),
+    onSuccess: () => { invalidate(); showNotification('Transaction updated successfully!', 'success'); },
+    onError: (err) => showNotification(err.message, 'error'),
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: (id) => deleteTransaction(id),
+    onSuccess: () => { invalidate(); showNotification('Transaction deleted successfully!', 'success'); },
+    onError: (err) => showNotification(err.message, 'error'),
+  });
+
+  return {
+    transactions,
+    stats,
+    isLoading,
+    error: error?.message ?? null,
+    create: (formData) => createMutation.mutateAsync(formData),
+    update: (id, formData) => updateMutation.mutateAsync({ id, formData }),
+    remove: (id) => removeMutation.mutateAsync(id),
+  };
 }
