@@ -11,7 +11,7 @@ DIST_DIR = dist
 ANDROID_DIR = android
 
 # NVM Setup: Source nvm.sh and run nvm use
-NVM_SH := /home/hiren/.local/bin/nvm.sh
+NVM_SH := ~/.local/bin/nvm.sh
 NVM_USE := . $(NVM_SH) && nvm use
 
 .PHONY: help install update dev build analyze lint format test test-watch clean cap-sync cap-open-android android-build
