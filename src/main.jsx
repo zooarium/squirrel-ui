@@ -11,6 +11,9 @@ configure({
   apiBase: import.meta.env.VITE_API_BE_URL,
   authBase: import.meta.env.VITE_API_URL,
   refreshPath: import.meta.env.VITE_REFRESH_PATH ?? '/users/refresh',
+  // When an impersonation session ends, return to the app root rather than the
+  // login screen.
+  impersonationExitPath: '/dashboard',
 });
 
 createRoot(document.getElementById('root')).render(

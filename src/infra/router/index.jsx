@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { PrivateRoute, RootRedirect, Spinner } from '@aviary-ui/ui';
+import { PrivateRoute, RootRedirect, Spinner, ImpersonationExchange } from '@aviary-ui/ui';
 
 const LoginPage = lazy(() => import('../../pages/LoginPage'));
 const DashboardPage = lazy(() => import('../../pages/DashboardPage'));
@@ -20,6 +20,9 @@ export default function AppRouter() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          {/* Impersonation handoff landing: a sysadmin "logging in as a user"
+              from keeper-ui lands here with a one-time code in the URL fragment. */}
+          <Route path="/impersonate/exchange" element={<ImpersonationExchange redirectTo="/dashboard" />} />
           <Route
             path="/dashboard"
             element={
