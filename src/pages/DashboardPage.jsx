@@ -20,7 +20,7 @@ import {
   CardTitle,
   CardBody,
   Badge,
-  Spinner,
+  ResponsiveTable,
   FormField,
   Input,
   Select,
@@ -246,11 +246,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="col-md-3 col-sm-6">
                   <label className="form-label">Date Range</label>
-                  <Select
-                    name="dated"
-                    value={filters.dated}
-                    onChange={handleFilterChange}
-                  >
+                  <Select name="dated" value={filters.dated} onChange={handleFilterChange}>
                     <option value="">All time</option>
                     <option value="today">Today</option>
                     <option value="yesterday">Yesterday</option>
@@ -306,71 +302,69 @@ export default function DashboardPage() {
           {/* Transactions table */}
           <Card>
             <CardBody noPadding>
-              {isLoading ? (
-                <Spinner centered />
-              ) : error ? (
-                <div className="p-4 text-center">
-                  <p className="text-danger mb-3">{error}</p>
-                  <Button variant="outline-danger" onClick={refetch}>
-                    Retry
-                  </Button>
-                </div>
-              ) : transactions.length === 0 ? (
-                <div className="p-5 text-center text-secondary">
-                  <p className="mb-3">No transactions found.</p>
-                  <Button onClick={openAdd}>Add first transaction</Button>
-                </div>
-              ) : (
-                <table className="table table-vcenter table-hover card-table">
-                  <thead>
-                    <tr>
-                      <th>Category</th>
-                      <th>Amount</th>
-                      <th>Type</th>
-                      <th>Date</th>
-                      <th className="w-1" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {transactions.map((t) => (
-                      <tr key={t.id}>
-                        <td className="fw-medium">{getCategoryName(t.category_id)}</td>
-                        <td>{formatINR(t.amount)}</td>
-                        <td>
-                          <Badge color={t.type === 'income' ? 'success' : 'danger'}>
-                            {t.type}
-                          </Badge>
-                        </td>
-                        <td className="text-secondary">
-                          {new Date(t.dated).toLocaleDateString('en-GB')}
-                        </td>
-                        <td>
-                          <div className="d-flex gap-2 justify-content-end">
-                            <Button
-                              variant="ghost-primary"
-                              size="sm"
-                              icon
-                              onClick={() => openEdit(t)}
-                              title="Edit"
-                            >
-                              <IconEdit size={16} />
-                            </Button>
-                            <Button
-                              variant="ghost-danger"
-                              size="sm"
-                              icon
-                              onClick={() => handleDeleteRequest(t)}
-                              title="Delete"
-                            >
-                              <IconTrash size={16} />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+              <ResponsiveTable
+                columns={[
+                  {
+                    key: 'category',
+                    header: 'Category',
+                    mobile: 'primary',
+                    className: 'fw-medium',
+                    render: (t) => getCategoryName(t.category_id),
+                  },
+                  {
+                    key: 'amount',
+                    header: 'Amount',
+                    render: (t) => formatINR(t.amount),
+                  },
+                  {
+                    key: 'type',
+                    header: 'Type',
+                    render: (t) => (
+                      <Badge color={t.type === 'income' ? 'success' : 'danger'}>{t.type}</Badge>
+                    ),
+                  },
+                  {
+                    key: 'dated',
+                    header: 'Date',
+                    className: 'text-secondary',
+                    render: (t) => new Date(t.dated).toLocaleDateString('en-GB'),
+                  },
+                  {
+                    key: 'actions',
+                    header: '',
+                    className: 'w-1',
+                    mobile: 'actions',
+                    render: (t) => (
+                      <div className="d-flex gap-2 justify-content-end">
+                        <Button
+                          variant="ghost-primary"
+                          size="sm"
+                          icon
+                          onClick={() => openEdit(t)}
+                          title="Edit"
+                        >
+                          <IconEdit size={16} />
+                        </Button>
+                        <Button
+                          variant="ghost-danger"
+                          size="sm"
+                          icon
+                          onClick={() => handleDeleteRequest(t)}
+                          title="Delete"
+                        >
+                          <IconTrash size={16} />
+                        </Button>
+                      </div>
+                    ),
+                  },
+                ]}
+                data={transactions}
+                isLoading={isLoading}
+                error={error}
+                onRetry={refetch}
+                emptyMessage="No transactions found."
+                emptyAction={<Button onClick={openAdd}>Add first transaction</Button>}
+              />
             </CardBody>
           </Card>
         </>
@@ -427,12 +421,7 @@ export default function DashboardPage() {
                   <BarChart data={barData1} layout="vertical" margin={{ left: 10, right: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                     <XAxis type="number" tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
-                    <YAxis
-                      dataKey="name"
-                      type="category"
-                      width={140}
-                      tick={{ fontSize: 12 }}
-                    />
+                    <YAxis dataKey="name" type="category" width={140} tick={{ fontSize: 12 }} />
                     <Tooltip formatter={(v) => formatINR(v)} />
                     <Bar dataKey="total_sum" radius={[0, 4, 4, 0]}>
                       {barData1.map((_, i) => (
@@ -470,7 +459,11 @@ export default function DashboardPage() {
                       {barData2.map((entry, i) => (
                         <Cell
                           key={i}
-                          fill={entry.type === 'income' ? TRANSACTION_COLORS.income : TRANSACTION_COLORS.expense}
+                          fill={
+                            entry.type === 'income'
+                              ? TRANSACTION_COLORS.income
+                              : TRANSACTION_COLORS.expense
+                          }
                         />
                       ))}
                     </Bar>

@@ -5,7 +5,7 @@ import {
   Card,
   CardBody,
   Badge,
-  Spinner,
+  ResponsiveTable,
   FormField,
   Input,
   Modal,
@@ -163,67 +163,55 @@ export default function CategoriesPage() {
       {/* Table card */}
       <Card>
         <CardBody noPadding>
-          {isLoading ? (
-            <Spinner centered />
-          ) : error ? (
-            <div className="p-4 text-center">
-              <p className="text-danger mb-3">{error}</p>
-              <Button variant="outline-danger" onClick={refetch}>
-                Retry
-              </Button>
-            </div>
-          ) : categories.length === 0 ? (
-            <div className="p-5 text-center text-secondary">
-              <p className="mb-3">No categories found.</p>
-              <Button onClick={openAdd}>Add first category</Button>
-            </div>
-          ) : (
-            <table className="table table-vcenter table-hover card-table">
-              <thead>
-                <tr>
-                  <th className="w-1">ID</th>
-                  <th>Name</th>
-                  <th>Status</th>
-                  <th className="w-1" />
-                </tr>
-              </thead>
-              <tbody>
-                {categories.map((cat) => (
-                  <tr key={cat.id}>
-                    <td className="text-secondary">{cat.id}</td>
-                    <td className="fw-medium">{cat.name}</td>
-                    <td>
-                      <Badge color={cat.status === 1 ? 'success' : 'secondary'}>
-                        {cat.status === 1 ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </td>
-                    <td>
-                      <div className="d-flex gap-2 justify-content-end">
-                        <Button
-                          variant="ghost-primary"
-                          size="sm"
-                          icon
-                          onClick={() => openEdit(cat)}
-                          title="Edit"
-                        >
-                          <IconEdit size={16} />
-                        </Button>
-                        <Button
-                          variant="ghost-danger"
-                          size="sm"
-                          icon
-                          onClick={() => handleDeleteRequest(cat)}
-                          title="Delete"
-                        >
-                          <IconTrash size={16} />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+          <ResponsiveTable
+            columns={[
+              { key: 'id', header: 'ID', className: 'w-1 text-secondary' },
+              { key: 'name', header: 'Name', mobile: 'primary', className: 'fw-medium' },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (cat) => (
+                  <Badge color={cat.status === 1 ? 'success' : 'secondary'}>
+                    {cat.status === 1 ? 'Active' : 'Inactive'}
+                  </Badge>
+                ),
+              },
+              {
+                key: 'actions',
+                header: '',
+                className: 'w-1',
+                mobile: 'actions',
+                render: (cat) => (
+                  <div className="d-flex gap-2 justify-content-end">
+                    <Button
+                      variant="ghost-primary"
+                      size="sm"
+                      icon
+                      onClick={() => openEdit(cat)}
+                      title="Edit"
+                    >
+                      <IconEdit size={16} />
+                    </Button>
+                    <Button
+                      variant="ghost-danger"
+                      size="sm"
+                      icon
+                      onClick={() => handleDeleteRequest(cat)}
+                      title="Delete"
+                    >
+                      <IconTrash size={16} />
+                    </Button>
+                  </div>
+                ),
+              },
+            ]}
+            data={categories}
+            isLoading={isLoading}
+            error={error}
+            onRetry={refetch}
+            emptyMessage="No categories found."
+            emptyAction={<Button onClick={openAdd}>Add first category</Button>}
+          />
         </CardBody>
       </Card>
 
@@ -254,12 +242,7 @@ export default function CategoriesPage() {
       </Modal>
 
       {/* Edit modal */}
-      <Modal
-        isOpen={isEditOpen}
-        onClose={() => setEditOpen(false)}
-        title="Edit Category"
-        size="sm"
-      >
+      <Modal isOpen={isEditOpen} onClose={() => setEditOpen(false)} title="Edit Category" size="sm">
         <form onSubmit={handleEdit} noValidate>
           <FormField label="Category Name" htmlFor="editCategoryName" error={formError}>
             <Input
