@@ -237,7 +237,17 @@ Light/dark toggle via `ThemeContext`. `data-bs-theme` attribute on `<html>` driv
 1. Create `src/pages/NewPage.jsx`, wrap with `<AppLayout>`.
 2. Lazy-import in `src/infra/router/index.jsx`.
 3. Add `<Route>` (wrap in `<PrivateRoute>` if auth-required).
-4. Add nav link in `AppLayout.jsx` `NAV_ITEMS` array.
+4. Add nav link in `src/config/nav.jsx` `NAV_ITEMS` array (see below for icons).
+
+### Add a sidebar menu icon
+Icons come from `@aviary-ui/ui`, re-exported from `@tabler/icons-react` in
+`aviary-ui/packages/ui/src/ui/icons.js` (single swap point for the icon library).
+1. If the icon isn't already re-exported, add it to
+   `aviary-ui/packages/ui/src/ui/icons.js`.
+2. In `src/config/nav.jsx`, import the icon from `@aviary-ui/ui` and set it on
+   the entry: `{ path, label, Icon }` in `NAV_ITEMS`.
+3. `AppLayout` (`@aviary-ui/ui`) renders the sidebar from `navItems`
+   automatically — no other file needs editing.
 
 ### Add a new API module
 1. Create `src/api/thing.js` using `apiRequest` from `@/infra/http/client`.
